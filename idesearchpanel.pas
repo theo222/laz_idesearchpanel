@@ -660,8 +660,9 @@ begin
 
   fClose := TImage.Create(fpanel);
   fClose.Parent := fPanel;
-  fClose.Width := 8;
-  fClose.Height := 8;
+  fClose.Width := 16;
+  fClose.Height := 16;
+  fClose.Center:=true;
   fClose.OnClick := @CloseClick;
   fClose.Hint := spClose;
   fClose.ShowHint := True;
@@ -675,8 +676,8 @@ procedure TIDESearchPanel.RealignControls;
 var
   PrevCtrl: TControl;
 begin
-  fClose.Left := fPanel.Width - 16;
-  fClose.Top := 8;
+  fClose.Left := fPanel.Width - 22;
+  fClose.Top := 4;
 
   fPanel.Height := fSearchEdit.Height + 12;
 
