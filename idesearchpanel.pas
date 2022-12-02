@@ -229,8 +229,8 @@ var
   Synedit: TSynEdit;
 begin
   aRect := fOptions.ClientToScreen(Point(fOptions.Width, 0));
-  fOptionsForm.Height := Round(fPanel.Canvas.TextHeight('AZ') * 1.5 *
-    fOptionsCheckGroup.Items.Count);
+  fOptionsForm.Height := Round(fPanel.Canvas.TextHeight('AZ') * 1.6 *
+    fOptionsCheckGroup.Items.Count+1);
   fOptionsForm.Left := ARect.X;
   fOptionsForm.Top := ARect.Y - fOptionsForm.Height;
   fOptionsForm.Visible := fOptions.down;
@@ -642,10 +642,10 @@ begin
   fOptionsForm.ShowInTaskBar := stNever;
   fOptionsForm.BorderStyle := bsNone;
   fOptionsForm.Height := 100;
-  fOptionsForm.Width := 250;
+  fOptionsForm.Width := 300;
 
   fOptionsCheckGroup := TCheckGroup.Create(fOptionsForm);
-  // fOptionsCheckGroup.Caption:=spSearchOptions;
+  fOptionsCheckGroup.Caption:=spSearchOptions;
   fOptionsCheckGroup.Parent := fOptionsForm;
   fOptionsCheckGroup.Align := AlClient;
   fOptionsCheckGroup.Items.Add(spCaseSens);
