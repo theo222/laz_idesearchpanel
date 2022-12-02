@@ -1,0 +1,59 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+#: idesearchpanel.mnushowpanel
+msgid "Show Search Panel"
+msgstr "Suchpanel anzeigen"
+
+#: idesearchpanel.spcasesens
+msgid "Case sensitive"
+msgstr "Klein-/Großschreibung beachten"
+
+#: idesearchpanel.spclose
+msgid "Close panel"
+msgstr "Panel Schliessen"
+
+#: idesearchpanel.spfindnext
+msgid "Find next"
+msgstr "Weitersuchen"
+
+#: idesearchpanel.spfindprev
+msgid "Find previous"
+msgstr "Rückwärts suchen"
+
+#: idesearchpanel.spfromcursor
+msgid "Search from Cursor"
+msgstr ""
+
+#: idesearchpanel.spincremental
+msgid "Show incremental search"
+msgstr "Inkrementelle Suche auzeigen"
+
+#: idesearchpanel.spmulitline
+msgid "Multiline pattern"
+msgstr "Mehrzeiliges Muster"
+
+#: idesearchpanel.spregex
+msgid "Regular expressions"
+msgstr "Reguläre Ausdrücke"
+
+#: idesearchpanel.spreplace
+msgid "Replace"
+msgstr "Ersetzen"
+
+#: idesearchpanel.spsayt
+msgid "Search-as-You-Type"
+msgstr "Beim Tippen suchen"
+
+#: idesearchpanel.spsearch
+msgid "Search"
+msgstr "Suchen"
+
+#: idesearchpanel.spsearchoptions
+msgid "Search options"
+msgstr "Suchoptionen"
+
+#: idesearchpanel.spwholewords
+msgid "Whole words only"
+msgstr "Nur ganze Wörter"
+
