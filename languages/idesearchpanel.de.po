@@ -27,7 +27,7 @@ msgstr "Ab Cursor suchen"
 
 #: idesearchpanel.spincremental
 msgid "Show incremental search"
-msgstr "Inkrementelle Suche auzeigen"
+msgstr "Inkrementelle Suche anzeigen"
 
 #: idesearchpanel.spmulitline
 msgid "Multiline pattern"
