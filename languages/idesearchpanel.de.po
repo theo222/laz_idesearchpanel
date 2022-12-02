@@ -23,7 +23,7 @@ msgstr "Rückwärts suchen"
 
 #: idesearchpanel.spfromcursor
 msgid "Search from Cursor"
-msgstr ""
+msgstr "Ab Cursor suchen"
 
 #: idesearchpanel.spincremental
 msgid "Show incremental search"
