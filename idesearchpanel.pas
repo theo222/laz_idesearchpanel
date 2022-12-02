@@ -10,6 +10,7 @@ uses
   Types,
   Classes,
   Forms,
+  Menus,
   SysUtils,
   Controls,
   StdCtrls,
@@ -593,6 +594,7 @@ begin
   PrevCtrl := fSearchEdit;
   fNext := TBitBtn.Create(fPanel);
   fNext.AutoSize := False;
+  fNext.GlyphShowMode:=gsmAlways;
   fNext.Width := 50;
   fNext.Caption := '';
   fNext.Hint := spFindNext;
@@ -605,6 +607,7 @@ begin
   PrevCtrl := fNext;
   fPrev := TBitBtn.Create(fPanel);
   fPrev.AutoSize := False;
+  fPrev.GlyphShowMode:=gsmAlways;
   fPrev.Caption := '';
   fPrev.Width := 50;
   fPrev.Hint := spFindPrev;
