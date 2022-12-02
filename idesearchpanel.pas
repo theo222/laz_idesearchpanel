@@ -1,7 +1,7 @@
 unit idesearchpanel;
 
 {$mode objfpc}{$H+}
-{$DEFINE DebugSayt}
+{_$DEFINE DebugSayt}
 {$MODESWITCH AdvancedRecords+}
 
 interface
