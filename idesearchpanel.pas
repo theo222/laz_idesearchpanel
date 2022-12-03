@@ -297,7 +297,7 @@ begin
 
     fSrch.Pattern := fSearchEdit.Text;
     // fSrch.Replacement:=fReplaceEdit.Text;
-    //  fSrch.RegularExpressions:=true;
+    // fSrch.RegularExpressions:=true;
 
     fSrch.Sensitive := fState.CaseSensitive;
     fSrch.Whole := fState.WholeWords;
@@ -406,7 +406,6 @@ begin
     Result := False;
     if not (Assigned(SourceEditorManagerIntf) and
       Assigned(SourceEditorManagerIntf.ActiveSourceWindow))
-    //  or not Assigned(IDEMessagesWindow)
     then Exit;
 
     if not Assigned(fPanel) then
@@ -429,9 +428,7 @@ begin
     begin
       fPanel.Visible := False;
       cmd.Checked := False;
-      //UpdateDockState(MsgWnd, fPanel);
     end;
-    {undocking is always succesfull}
     Result := True;
   end;
 end;
@@ -463,7 +460,6 @@ end;
 destructor TIDESearchPanel.Destroy;
 begin
   {$IFDEF DebugSayt} DebugSayt('Destroy', ''); {$ENDIF}
-  //if Assigned(fPanel) then UpdateDockState(MsgWnd, fPanel);
   SaveStates;
   DeallocControls;
   fSrchResultList.Free;
@@ -716,8 +712,6 @@ end;
 procedure TIDESearchPanel.DeallocControls;
 begin
    {$IFDEF DebugSayt} DebugSayt('DeAllocControls', ''); {$ENDIF}
-  // split:=nil;
-  //FreeAndNil(fPanel);
   fSearchEdit := nil;
   fReplaceEdit := nil;
   fNext := nil;
@@ -727,10 +721,6 @@ begin
   fPanel := nil;
   fOptionsCheckGroup := nil;
   fOptionsForm := nil;
-
-
-  //fCaseSens:=nil;
-  //fWholeWords:=nil;
 end;
 
 
@@ -740,7 +730,6 @@ begin
       {$IFDEF DebugSayt} DebugSayt('SourceWindowCreated', ''); {$ENDIF}
   if Assigned(FCurrentSrcWin) or (SourceEditorManagerIntf.SourceWindowCount > 1) then
     Exit;
-  //if MsgWnd.Docked then DoChangeDocking(true);
 end;
 
 procedure TIDESearchPanel.SourceWindowDestroyed(Sender: TObject);
@@ -750,20 +739,12 @@ begin
   DoChangePanelVisibility(False);
   DeallocControls;
   FCurrentSrcWin := nil;
-
-  // avoid re-docking to the window being destroyed
-  //  if MsgWnd.Docked and (SourceEditorManagerIntf.ActiveSourceWindow<>Sender) then DoChangeDocking(True);
 end;
 
 procedure TIDESearchPanel.UpdateDockState(var astate: TSearchState; wnd: TWinControl);
 begin
-{  astate.DockSize.cx := wnd.ClientWidth;
-  astate.DockSize.cy := wnd.ClientHeight;}
    {$IFDEF DebugSayt} DebugSayt('UpdateDockState', ''); {$ENDIF}
-{  if SyncSearchStateFromButtons then
-  begin}
   Astate.InitiallyVisible := fPanel.Visible;
-  //  end;
 end;
 
 procedure TIDESearchPanel.LoadState(cfg: TXMLConfig; const StateName: string);
