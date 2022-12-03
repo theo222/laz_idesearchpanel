@@ -98,6 +98,7 @@ type
     fLastChangeStamp: int64;
     fLastSearchText: string;
     fSavedSelection: TSrchResult;
+    procedure HideOptions;
     procedure MainWindowStateChange(Sender: TObject);
     procedure AEditChange(Sender: TObject);
     procedure AEditKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
@@ -246,13 +247,21 @@ begin
   SynEdit.TopLine := SynEdit.BlockBegin.y - (SynEdit.LinesInWindow div 2);
 end;
 
+procedure TIDESearchPanel.HideOptions;
+begin
+  if Assigned(fOptions) and Assigned(fOptionsForm) then
+  begin
+     fOptions.down := False;
+     fOptionsForm.Visible := False;
+  end;
+end;
+
 procedure TIDESearchPanel.MainWindowStateChange(Sender: TObject);
 begin
  {$IFDEF DebugSayt}
   DebugSayt('MainWindowStateChange', '');
  {$ENDIF}
-  fOptions.down := False;
-  fOptionsForm.Visible := False;
+ HideOptions;
 end;
 
 procedure TIDESearchPanel.AEditChange(Sender: TObject);
@@ -426,6 +435,7 @@ begin
   begin
     if Assigned(fPanel) then
     begin
+      HideOptions;
       fPanel.Visible := False;
       cmd.Checked := False;
     end;
@@ -496,8 +506,7 @@ procedure TIDESearchPanel.SynEditMouseDown(Sender: TObject; Button: TMouseButton
   Shift: TShiftState; X, Y: integer);
 begin
   {$IFDEF DebugSayt} DebugSayt('SynEditMouseDown', ''); {$ENDIF}
-  fOptions.down := False;
-  fOptionsForm.Visible := False;
+  HideOptions;
   TSynEdit(Sender).SetHighlightSearch('', []);
   fSavedSelection.Start := Point(1, 1);
   fSavedSelection.Ende := Point(MaxInt, MaxInt);
