@@ -156,6 +156,8 @@ const
 
 implementation
 
+uses Math;
+
 {$IFDEF DebugSayt}
 procedure DebugSayt(Sendr: string; Msg: string);
 begin
@@ -228,7 +230,14 @@ procedure TIDESearchPanel.OptionsClick(Sender: TObject);
 var
   aRect: TPoint;
   Synedit: TSynEdit;
+  MaxLineWid:integer;
+  LineText:String;
 begin
+  MaxLineWid:=0;
+  for LineText in fOptionsCheckGroup.Items do
+    MaxLineWid:=Math.Max(fOptionsForm.Canvas.TextWidth(LineText), MaxLineWid);
+  fOptionsForm.Width:=MaxLineWid+50;
+
   aRect := fOptions.ClientToScreen(Point(fOptions.Width, 0));
   fOptionsForm.Height := Round(fPanel.Canvas.TextHeight('AZ') * 1.6 *
     fOptionsCheckGroup.Items.Count+1);
