@@ -21,6 +21,7 @@ uses
   IDEImagesIntf,
   LazIDEIntf,
   LCLType,
+  LCLVersion,
   LazUTF8,
   MenuIntf,
   SrcEditorIntf,
@@ -33,6 +34,10 @@ uses
   LCLProc,
   fgl,
   DefaultTranslator;
+
+{$IF LCL_FullVersion >= 2030000}
+  {$DEFINE ImageHasImagelist}
+{$ENDIF}
 
 procedure Register;
 
@@ -89,7 +94,11 @@ type
     fOptionsForm: TForm;
     fOptionsCheckGroup: TCheckGroup;
     fState: TSearchState;
+    {$IFDEF ImageHasImagelist}
     fClose: TImage;
+    {$ELSE}
+    fClose: TSpeedButton;
+    {$ENDIF}
     fLabel: TLabel;
     fPanel: TPanel;
     fSrch: TSynEditSearch;
@@ -240,7 +249,6 @@ begin
   for LineText in fOptionsCheckGroup.Items do
     MaxLineWid:=Math.Max(fOptionsForm.Canvas.TextWidth(LineText), MaxLineWid);
   fOptionsForm.Width:=MaxLineWid+50;
-
   aRect := fOptions.ClientToScreen(Point(fOptions.Width, 0));
   fOptionsForm.Height := Round(fPanel.Canvas.TextHeight('AZ') * 1.6 *
     fOptionsCheckGroup.Items.Count+1);
@@ -585,9 +593,12 @@ begin
 end;
 
 procedure TIDESearchPanel.AllocControls(AParent: TWinControl);
+const
+  BORDER = 5;
 var
   PrevCtrl: TControl;
   Black:String;
+  scaledBorder: Integer;
 begin
   {$IFDEF DebugSayt} DebugSayt('AllocControls', ''); {$ENDIF}
   if fState.BlackIcons then Black := '_black' else Black:='';
@@ -597,10 +608,15 @@ begin
   fPanel.Align := alBottom;
   fPanel.OnChangeBounds := @PanelChangeBounds;
 
+  scaledBorder := fPanel.Scale96ToFont(BORDER);
+
   fSearchEdit := TEdit.Create(fPanel);
   fSearchEdit.TextHint := spSearch;
-  fSearchEdit.Top := 4;
-  fSearchEdit.Left := 4;
+  fSearchEdit.BorderSpacing.Around := scaledBorder;
+  fSearchEdit.AnchorSideLeft.Control := fPanel;
+  fSearchEdit.AnchorSideLeft.Side := asrLeft;
+  fSearchEdit.AnchorSideTop.Control := fPanel;
+  fSearchEdit.AnchorSideTop.Side := asrCenter;
   fSearchEdit.Width := 200;
   fSearchEdit.Parent := fPanel;
   fSearchEdit.OnChange := @AEditChange;
@@ -608,9 +624,15 @@ begin
 
   PrevCtrl := fSearchEdit;
   fNext := TBitBtn.Create(fPanel);
-  fNext.AutoSize := False;
+  fNext.AutoSize := True;
   fNext.GlyphShowMode:=gsmAlways;
-  fNext.Width := 50;
+  fNext.AnchorSideLeft.Control := fSearchEdit;
+  fNext.AnchorSideLeft.Side := asrRight;
+  fNext.AnchorSideTop.Control := fSearchEdit;
+  fNext.AnchorSideTop.Side := asrTop;
+  fNext.AnchorSideBottom.Control := fSearchEdit;
+  fNext.AnchorSideBottom.Side := asrBottom;
+  fNext.Anchors := [akLeft, akTop, akBottom];
   fNext.Caption := '';
   fNext.Hint := spFindNext;
   fNext.ShowHint := True;
@@ -621,10 +643,17 @@ begin
 
   PrevCtrl := fNext;
   fPrev := TBitBtn.Create(fPanel);
-  fPrev.AutoSize := False;
+  fPrev.AutoSize := true;
   fPrev.GlyphShowMode:=gsmAlways;
   fPrev.Caption := '';
-  fPrev.Width := 50;
+  fPrev.BorderSpacing.Left := scaledBorder;
+  fPrev.AnchorSideLeft.Control := PrevCtrl;
+  fPrev.AnchorSideLeft.Side := asrRight;
+  fPrev.AnchorSideTop.Control := fSearchEdit;
+  fPrev.AnchorSideTop.Side := asrTop;
+  fPrev.AnchorSideBottom.Control := fSearchEdit;
+  fPrev.AnchorSideBottom.Side := asrBottom;
+  fPrev.Anchors := [akLeft, akTop, akBottom];
   fPrev.Hint := spFindPrev;
   fPrev.ShowHint := True;
   fPrev.Parent := fPanel;
@@ -636,6 +665,15 @@ begin
   fOptions := TSpeedButton.Create(fpanel);
   fOptions.Hint := spSearchOptions;
   fOptions.ShowHint := True;
+  fOptions.AutoSize := true;
+  fOptions.BorderSpacing.Left := scaledBorder;
+  fOptions.AnchorSideLeft.Control := PrevCtrl;
+  fOptions.AnchorSideLeft.Side := asrRight;
+  fOptions.AnchorSideTop.Control := fSearchEdit;
+  fOptions.AnchorSideTop.Side := asrTop;
+  fOptions.AnchorSideBottom.Control := fSearchEdit;
+  fOptions.AnchorSideBottom.Side := asrBottom;
+  fOptions.Anchors := [akLeft, akTop, akBottom];
   fOptions.Parent := fPanel;
   fOptions.AllowAllUp := True;
   fOptions.GroupIndex := -1;
@@ -648,21 +686,26 @@ begin
   fLabel.Parent := fPanel;
   fLabel.Caption := '0/0';
   fLabel.AutoSize := True;
-  fLabel.Width := 60;
+//  fLabel.Width := 60;
   fLabel.Alignment := taCenter;
+  fLabel.BorderSpacing.Left := scaledBorder;
+  fLabel.AnchorSideLeft.Control := fOptions;
+  fLabel.AnchorSideLeft.Side := asrRight;
+  fLabel.AnchorSideTop.Control := fSearchEdit;
+  fLabel.AnchorSideTop.Side := asrCenter;
   fLabel.Caption := '0/0';
 
   fOptionsForm := TForm.CreateNew(fPanel);
   fOptionsForm.FormStyle := fsStayOnTop;
   fOptionsForm.ShowInTaskBar := stNever;
   fOptionsForm.BorderStyle := bsNone;
-  fOptionsForm.Height := 100;
+  fOptionsForm.Height := 100;  // will be overridden when form shows
   fOptionsForm.Width := 300;
 
   fOptionsCheckGroup := TCheckGroup.Create(fOptionsForm);
   fOptionsCheckGroup.Caption:=spSearchOptions;
   fOptionsCheckGroup.Parent := fOptionsForm;
-  fOptionsCheckGroup.Align := AlClient;
+  fOptionsCheckGroup.Align := alClient;
   fOptionsCheckGroup.Items.Add(spCaseSens);
   fOptionsCheckGroup.Items.Add(spWholeWords);
   fOptionsCheckGroup.Items.Add(spRegex);
@@ -673,60 +716,35 @@ begin
 
   SyncButtonsFromSearchState;
 
+  {$IFDEF ImageHasImageList}
   fClose := TImage.Create(fpanel);
-  fClose.Parent := fPanel;
-  fClose.Width := 16;
-  fClose.Height := 16;
   fClose.Center:=true;
+  {$ELSE}
+  fClose := TSpeedButton.Create(fPanel);
+  fClose.Flat := true;
+  {$ENDIF}
+  fClose.Parent := fPanel;
+  fClose.AutoSize := true;
   fClose.OnClick := @CloseClick;
   fClose.Hint := spClose;
   fClose.ShowHint := True;
   fClose.Images := IDEImages.Images_16;
   fClose.ImageIndex := IDEImages.Images_16.GetImageIndex('laz_cancel' + Black);
+  fClose.BorderSpacing.Around := fPanel.Scale96ToFont(4);
+  fClose.AnchorSideRight.Control := fPanel;
+  fClose.AnchorSideRight.Side := asrRight;
+  fClose.AnchorSideTop.Control := fPanel;
+  fClose.AnchorSideTop.Side := asrTop;
+  fClose.Anchors := [akRight, akTop];
 
+  fPanel.AutoSize := true;
   RealignControls;
-//  Pic.Free;
 end;
 
 procedure TIDESearchPanel.RealignControls;
-var
-  PrevCtrl: TControl;
 begin
-  fClose.Left := fPanel.Width - 22;
-  fClose.Top := 4;
-
-  fPanel.Height := fSearchEdit.Height + 12;
-
   fSearchEdit.Width := fPanel.Width div 4;
-
-  PrevCtrl := fSearchEdit;
-
-  if Assigned(fReplaceEdit) then
-  begin
-    fReplaceEdit.Left := PrevCtrl.Left + PrevCtrl.Width + 5;
-    fReplaceEdit.Width := PrevCtrl.Width;
-    PrevCtrl := fReplaceEdit;
-  end;
-
-  fNext.Top := PrevCtrl.Top;
-  fNext.Left := PrevCtrl.Left + PrevCtrl.Width + 5;
-  fNext.Height := PrevCtrl.Height;
-
-  PrevCtrl := fNext;
-  fPrev.Top := PrevCtrl.Top;
-  fPrev.Left := PrevCtrl.Left + PrevCtrl.Width + 5;
-  fPrev.Height := PrevCtrl.Height;
-
-  PrevCtrl := fPrev;
-  fOptions.Height := PrevCtrl.Height;
-  fOptions.Width := fOptions.Height;
-  fOptions.Left := PrevCtrl.Left + PrevCtrl.Width + 5;
-  fOptions.Top := PrevCtrl.Top + PrevCtrl.Height - fOptions.Height;
-
-  PrevCtrl := fOptions;
-  fLabel.Left := PrevCtrl.Left + PrevCtrl.Width + 10;
-  fLabel.Top := PrevCtrl.Top + (PrevCtrl.Height - fLabel.Height) div 2;
-
+  fOptions.Constraints.MinWidth := FOptions.Height;
 end;
 
 procedure TIDESearchPanel.DeallocControls;
