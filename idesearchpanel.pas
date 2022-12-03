@@ -60,11 +60,11 @@ type
     WholeWords: boolean;
     Regex: boolean;
     SAYT: boolean;
-    FromCursor:boolean;
+    FromCursor: boolean;
     Incremental: boolean;
     RegExMultiLine: boolean;
     InitiallyVisible: boolean;
-    BlackIcons:Boolean;
+    BlackIcons: boolean;
   end;
 
   { TSrchResult }
@@ -205,9 +205,11 @@ begin
   if Assigned(ASynEdit) then
   begin
     if fState.CaseSensitive then
-    Result := ASynEdit.SelText = fSearchEdit.Text else
-    Result := UTF8LowerCase(ASynEdit.SelText) = UTF8LowerCase(fSearchEdit.Text)
-  end else
+      Result := ASynEdit.SelText = fSearchEdit.Text
+    else
+      Result := UTF8LowerCase(ASynEdit.SelText) = UTF8LowerCase(fSearchEdit.Text);
+  end
+  else
     Result := False;
 end;
 
@@ -230,17 +232,17 @@ procedure TIDESearchPanel.OptionsClick(Sender: TObject);
 var
   aRect: TPoint;
   Synedit: TSynEdit;
-  MaxLineWid:integer;
-  LineText:String;
+  MaxLineWid: integer;
+  LineText: string;
 begin
-  MaxLineWid:=0;
+  MaxLineWid := 0;
   for LineText in fOptionsCheckGroup.Items do
-    MaxLineWid:=Math.Max(fOptionsForm.Canvas.TextWidth(LineText), MaxLineWid);
-  fOptionsForm.Width:=MaxLineWid+50;
+    MaxLineWid := Math.Max(fOptionsForm.Canvas.TextWidth(LineText), MaxLineWid);
+  fOptionsForm.Width := MaxLineWid + 50;
 
   aRect := fOptions.ClientToScreen(Point(fOptions.Width, 0));
   fOptionsForm.Height := Round(fPanel.Canvas.TextHeight('AZ') * 1.6 *
-    fOptionsCheckGroup.Items.Count+1);
+    fOptionsCheckGroup.Items.Count + 1);
   fOptionsForm.Left := ARect.X;
   fOptionsForm.Top := ARect.Y - fOptionsForm.Height;
   fOptionsForm.Visible := fOptions.down;
@@ -260,8 +262,8 @@ procedure TIDESearchPanel.HideOptions;
 begin
   if Assigned(fOptions) and Assigned(fOptionsForm) then
   begin
-     fOptions.down := False;
-     fOptionsForm.Visible := False;
+    fOptions.down := False;
+    fOptionsForm.Visible := False;
   end;
 end;
 
@@ -270,7 +272,7 @@ begin
  {$IFDEF DebugSayt}
   DebugSayt('MainWindowStateChange', '');
  {$ENDIF}
- HideOptions;
+  HideOptions;
 end;
 
 procedure TIDESearchPanel.AEditChange(Sender: TObject);
@@ -278,12 +280,28 @@ begin
   if fState.SAYT then SearchFirst;
 end;
 
-procedure TIDESearchPanel.AEditKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
+procedure TIDESearchPanel.AEditKeyDown(Sender: TObject; var Key: word;
+  Shift: TShiftState);
 begin
   if Key = VK_RETURN then
     if (fLastSearchText <> fSearchEdit.Text) then SearchFirst
     else
       SearchNext;
+
+  //Tipp von Ally:
+  // Strg+V abfangen und PasteFromClipboard ausführen, weil sonst Paste im Synedit ausgeführt wird. (Obwohl es nicht den Focus hat.)
+  if (ssCtrl in Shift) and (Key = VK_V) then
+  begin
+    fSearchEdit.PasteFromClipboard;
+    Key := 0;
+  end;
+  // Strg+C abfangen und CopyToClipboard ausführen, weil sonst Copy im Synedit ausgeführt wird. (Obwohl es nicht den Focus hat.)
+  if (ssCtrl in Shift) and ((Key = VK_C)) then
+  begin
+    fSearchEdit.CopyToClipboard;
+    Key := 0;
+  end;
+
 end;
 
 
@@ -308,8 +326,9 @@ begin
     else
     begin
       if fState.FromCursor then
-       SP:=Point(Synedit.CaretX,Synedit.CaretY) else
-       SP := Point(1, 1);
+        SP := Point(Synedit.CaretX, Synedit.CaretY)
+      else
+        SP := Point(1, 1);
       EP := Point(Maxint, Maxint);
     end;
 
@@ -423,8 +442,7 @@ begin
   begin
     Result := False;
     if not (Assigned(SourceEditorManagerIntf) and
-      Assigned(SourceEditorManagerIntf.ActiveSourceWindow))
-    then Exit;
+      Assigned(SourceEditorManagerIntf.ActiveSourceWindow)) then Exit;
 
     if not Assigned(fPanel) then
       AllocControls(SourceEditorManagerIntf.ActiveSourceWindow);
@@ -511,8 +529,8 @@ begin
   Result.Filename := xmlfile;
 end;
 
-procedure TIDESearchPanel.SynEditMouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: integer);
+procedure TIDESearchPanel.SynEditMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: integer);
 begin
   {$IFDEF DebugSayt} DebugSayt('SynEditMouseDown', ''); {$ENDIF}
   HideOptions;
@@ -585,10 +603,12 @@ procedure TIDESearchPanel.AllocControls(AParent: TWinControl);
 var
   Pic: TPicture;
   PrevCtrl: TControl;
-  Black:String;
+  Black: string;
 begin
   {$IFDEF DebugSayt} DebugSayt('AllocControls', ''); {$ENDIF}
-  if fState.BlackIcons then Black := '_black' else Black:='';
+  if fState.BlackIcons then Black := '_black'
+  else
+    Black := '';
   Pic := TPicture.Create;
   fPanel := TPanel.Create(AParent);
   fPanel.Parent := AParent;
@@ -608,7 +628,7 @@ begin
   PrevCtrl := fSearchEdit;
   fNext := TBitBtn.Create(fPanel);
   fNext.AutoSize := False;
-  fNext.GlyphShowMode:=gsmAlways;
+  fNext.GlyphShowMode := gsmAlways;
   fNext.Width := 50;
   fNext.Caption := '';
   fNext.Hint := spFindNext;
@@ -621,7 +641,7 @@ begin
   PrevCtrl := fNext;
   fPrev := TBitBtn.Create(fPanel);
   fPrev.AutoSize := False;
-  fPrev.GlyphShowMode:=gsmAlways;
+  fPrev.GlyphShowMode := gsmAlways;
   fPrev.Caption := '';
   fPrev.Width := 50;
   fPrev.Hint := spFindPrev;
@@ -659,7 +679,7 @@ begin
   fOptionsForm.Width := 300;
 
   fOptionsCheckGroup := TCheckGroup.Create(fOptionsForm);
-  fOptionsCheckGroup.Caption:=spSearchOptions;
+  fOptionsCheckGroup.Caption := spSearchOptions;
   fOptionsCheckGroup.Parent := fOptionsForm;
   fOptionsCheckGroup.Align := AlClient;
   fOptionsCheckGroup.Items.Add(spCaseSens);
@@ -676,7 +696,7 @@ begin
   fClose.Parent := fPanel;
   fClose.Width := 16;
   fClose.Height := 16;
-  fClose.Center:=true;
+  fClose.Center := True;
   fClose.OnClick := @CloseClick;
   fClose.Hint := spClose;
   fClose.ShowHint := True;
