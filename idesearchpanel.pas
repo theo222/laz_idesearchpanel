@@ -18,8 +18,10 @@ uses
   Buttons,
   IDECommands,
   ProjectIntf,
+  IDEImagesIntf,
   LazIDEIntf,
   LCLType,
+  LCLVersion,
   LazUTF8,
   MenuIntf,
   SrcEditorIntf,
@@ -32,6 +34,10 @@ uses
   LCLProc,
   fgl,
   DefaultTranslator;
+
+{$IF LCL_FullVersion >= 2030000}
+ {$DEFINE ImageHasImageList}
+{$ENDIF}
 
 procedure Register;
 
@@ -88,7 +94,7 @@ type
     fOptionsForm: TForm;
     fOptionsCheckGroup: TCheckGroup;
     fState: TSearchState;
-    fClose: TImage;
+    fClose: {$IFDEF ImageHasImageList}TImage{$ELSE}TSpeedButton{$ENDIF};
     fLabel: TLabel;
     fPanel: TPanel;
     fSrch: TSynEditSearch;
@@ -155,6 +161,8 @@ const
   NodeName = 'SP';
 
 implementation
+
+{$R searchpanel_images.res}
 
 uses Math;
 
@@ -601,15 +609,11 @@ end;
 
 procedure TIDESearchPanel.AllocControls(AParent: TWinControl);
 var
-  Pic: TPicture;
   PrevCtrl: TControl;
   Black: string;
 begin
   {$IFDEF DebugSayt} DebugSayt('AllocControls', ''); {$ENDIF}
-  if fState.BlackIcons then Black := '_black'
-  else
-    Black := '';
-  Pic := TPicture.Create;
+  if fState.BlackIcons then Black := '_black' else Black:='';
   fPanel := TPanel.Create(AParent);
   fPanel.Parent := AParent;
   fPanel.BorderStyle := bsNone;
@@ -618,8 +622,8 @@ begin
 
   fSearchEdit := TEdit.Create(fPanel);
   fSearchEdit.TextHint := spSearch;
-  fSearchEdit.Top := 4;
-  fSearchEdit.Left := 4;
+  fSearchEdit.Top := fPanel.Scale96ToFont(4);
+  fSearchEdit.Left := fPanel.Scale96ToFont(4);
   fSearchEdit.Width := 200;
   fSearchEdit.Parent := fPanel;
   fSearchEdit.OnChange := @AEditChange;
@@ -628,14 +632,14 @@ begin
   PrevCtrl := fSearchEdit;
   fNext := TBitBtn.Create(fPanel);
   fNext.AutoSize := False;
-  fNext.GlyphShowMode := gsmAlways;
-  fNext.Width := 50;
+  fNext.GlyphShowMode:=gsmAlways;
+  fNext.Width := fPanel.Scale96ToFont(50);
   fNext.Caption := '';
   fNext.Hint := spFindNext;
   fNext.ShowHint := True;
   fNext.Parent := fPanel;
-  Pic.LoadFromLazarusResource('Arrow_28_16' + Black);
-  fNext.Glyph.Assign(Pic.Bitmap);
+  fNext.Images := IDEImages.Images_16;
+  fNext.ImageIndex := IDEImages.Images_16.GetImageIndex('arrow_28' + Black);
   fNext.OnClick := @NextClick;
 
   PrevCtrl := fNext;
@@ -643,12 +647,12 @@ begin
   fPrev.AutoSize := False;
   fPrev.GlyphShowMode := gsmAlways;
   fPrev.Caption := '';
-  fPrev.Width := 50;
+  fPrev.Width := fPanel.Scale96ToFont(50);
   fPrev.Hint := spFindPrev;
   fPrev.ShowHint := True;
   fPrev.Parent := fPanel;
-  Pic.LoadFromLazarusResource('Arrow_27_16' + Black);
-  fPrev.Glyph.Assign(Pic.Bitmap);
+  fPrev.Images := IDEImages.Images_16;
+  fPrev.ImageIndex := IDEImages.Images_16.GetImageIndex('arrow_27' + Black);
   fPrev.OnClick := @PrevClick;
 
   PrevCtrl := fPrev;
@@ -658,8 +662,8 @@ begin
   fOptions.Parent := fPanel;
   fOptions.AllowAllUp := True;
   fOptions.GroupIndex := -1;
-  Pic.LoadFromLazarusResource('Setup_06_16' + Black);
-  fOptions.Glyph.Assign(Pic.Bitmap);
+  fOptions.Images := IDEImages.Images_16;
+  fOptions.ImageIndex := IDEImages.Images_16.GetImageIndex('setup_06' + Black);
   fOptions.OnClick := @OptionsClick;
 
   PrevCtrl := fOptions;
@@ -667,7 +671,7 @@ begin
   fLabel.Parent := fPanel;
   fLabel.Caption := '0/0';
   fLabel.AutoSize := True;
-  fLabel.Width := 60;
+//  fLabel.Width := 60;         // kann nach AutoSize=true nicht mehr geändert werden
   fLabel.Alignment := taCenter;
   fLabel.Caption := '0/0';
 
@@ -692,28 +696,38 @@ begin
 
   SyncButtonsFromSearchState;
 
+  {$IFDEF ImageHasImageList}
   fClose := TImage.Create(fpanel);
+  fClose.Center:=true;
+  {$ELSE}
+  fClose := TSpeedButton.Create(fPanel);
+  fClose.Flat := true;
+  {$ENDIF}
   fClose.Parent := fPanel;
-  fClose.Width := 16;
-  fClose.Height := 16;
-  fClose.Center := True;
+  fClose.Width := fPanel.Scale96ToFont(16);
+  fClose.Height := fPanel.Scale96ToFont(16);
   fClose.OnClick := @CloseClick;
   fClose.Hint := spClose;
   fClose.ShowHint := True;
-  fClose.Picture.LoadFromLazarusResource('close_laz');
+  fClose.Images := IDEImages.Images_16;
+  fClose.ImageIndex := IDEImages.Images_16.GetImageIndex('laz_cancel' + Black);
 
   RealignControls;
-  Pic.Free;
 end;
 
 procedure TIDESearchPanel.RealignControls;
+const
+  MARGIN = 5;
 var
   PrevCtrl: TControl;
+  scaledMargin: Integer;
 begin
-  fClose.Left := fPanel.Width - 22;
-  fClose.Top := 4;
+  scaledMargin := fPanel.Scale96ToFont(MARGIN);
 
-  fPanel.Height := fSearchEdit.Height + 12;
+  fClose.Left := fPanel.Width - fPanel.Scale96ToFont(22);
+  fClose.Top := fPanel.Scale96ToFont(4);
+
+  fPanel.Height := fSearchEdit.Height + fPanel.Scale96ToFont(12);
 
   fSearchEdit.Width := fPanel.Width div 4;
 
@@ -721,28 +735,28 @@ begin
 
   if Assigned(fReplaceEdit) then
   begin
-    fReplaceEdit.Left := PrevCtrl.Left + PrevCtrl.Width + 5;
+    fReplaceEdit.Left := PrevCtrl.Left + PrevCtrl.Width + scaledMargin;
     fReplaceEdit.Width := PrevCtrl.Width;
     PrevCtrl := fReplaceEdit;
   end;
 
   fNext.Top := PrevCtrl.Top;
-  fNext.Left := PrevCtrl.Left + PrevCtrl.Width + 5;
+  fNext.Left := PrevCtrl.Left + PrevCtrl.Width + scaledMargin;
   fNext.Height := PrevCtrl.Height;
 
   PrevCtrl := fNext;
   fPrev.Top := PrevCtrl.Top;
-  fPrev.Left := PrevCtrl.Left + PrevCtrl.Width + 5;
+  fPrev.Left := PrevCtrl.Left + PrevCtrl.Width + scaledMargin;
   fPrev.Height := PrevCtrl.Height;
 
   PrevCtrl := fPrev;
   fOptions.Height := PrevCtrl.Height;
   fOptions.Width := fOptions.Height;
-  fOptions.Left := PrevCtrl.Left + PrevCtrl.Width + 5;
+  fOptions.Left := PrevCtrl.Left + PrevCtrl.Width + scaledMargin;
   fOptions.Top := PrevCtrl.Top + PrevCtrl.Height - fOptions.Height;
 
   PrevCtrl := fOptions;
-  fLabel.Left := PrevCtrl.Left + PrevCtrl.Width + 10;
+  fLabel.Left := PrevCtrl.Left + PrevCtrl.Width + 2*scaledMargin;
   fLabel.Top := PrevCtrl.Top + (PrevCtrl.Height - fLabel.Height) div 2;
 
 end;
@@ -868,8 +882,6 @@ begin
 end;
 
 initialization
-
-{$I idesearchpanelicons.lrs}
 
 finalization
   ASearchPanel.Free;
