@@ -18,6 +18,7 @@ uses
   Buttons,
   IDECommands,
   ProjectIntf,
+  IDEImagesIntf,
   LazIDEIntf,
   LCLType,
   LazUTF8,
@@ -155,6 +156,8 @@ const
   NodeName = 'SP';
 
 implementation
+
+{$R searchpanel_images.res}
 
 uses Math;
 
@@ -583,13 +586,11 @@ end;
 
 procedure TIDESearchPanel.AllocControls(AParent: TWinControl);
 var
-  Pic: TPicture;
   PrevCtrl: TControl;
   Black:String;
 begin
   {$IFDEF DebugSayt} DebugSayt('AllocControls', ''); {$ENDIF}
   if fState.BlackIcons then Black := '_black' else Black:='';
-  Pic := TPicture.Create;
   fPanel := TPanel.Create(AParent);
   fPanel.Parent := AParent;
   fPanel.BorderStyle := bsNone;
@@ -614,8 +615,8 @@ begin
   fNext.Hint := spFindNext;
   fNext.ShowHint := True;
   fNext.Parent := fPanel;
-  Pic.LoadFromLazarusResource('Arrow_28_16' + Black);
-  fNext.Glyph.Assign(Pic.Bitmap);
+  fNext.Images := IDEImages.Images_16;
+  fNext.ImageIndex := IDEImages.Images_16.GetImageIndex('arrow_28' + Black);
   fNext.OnClick := @NextClick;
 
   PrevCtrl := fNext;
@@ -627,8 +628,8 @@ begin
   fPrev.Hint := spFindPrev;
   fPrev.ShowHint := True;
   fPrev.Parent := fPanel;
-  Pic.LoadFromLazarusResource('Arrow_27_16' + Black);
-  fPrev.Glyph.Assign(Pic.Bitmap);
+  fPrev.Images := IDEImages.Images_16;
+  fPrev.ImageIndex := IDEImages.Images_16.GetImageIndex('arrow_27' + Black);
   fPrev.OnClick := @PrevClick;
 
   PrevCtrl := fPrev;
@@ -638,8 +639,8 @@ begin
   fOptions.Parent := fPanel;
   fOptions.AllowAllUp := True;
   fOptions.GroupIndex := -1;
-  Pic.LoadFromLazarusResource('Setup_06_16' + Black);
-  fOptions.Glyph.Assign(Pic.Bitmap);
+  fOptions.Images := IDEImages.Images_16;
+  fOptions.ImageIndex := IDEImages.Images_16.GetImageIndex('setup_06' + Black);
   fOptions.OnClick := @OptionsClick;
 
   PrevCtrl := fOptions;
@@ -680,10 +681,11 @@ begin
   fClose.OnClick := @CloseClick;
   fClose.Hint := spClose;
   fClose.ShowHint := True;
-  fClose.Picture.LoadFromLazarusResource('close_laz');
+  fClose.Images := IDEImages.Images_16;
+  fClose.ImageIndex := IDEImages.Images_16.GetImageIndex('laz_cancel' + Black);
 
   RealignControls;
-  Pic.Free;
+//  Pic.Free;
 end;
 
 procedure TIDESearchPanel.RealignControls;
@@ -848,8 +850,6 @@ begin
 end;
 
 initialization
-
-{$I idesearchpanelicons.lrs}
 
 finalization
   ASearchPanel.Free;
