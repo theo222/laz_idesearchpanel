@@ -49,6 +49,10 @@ msgstr "Cerca durante la digitazione"
 msgid "Search"
 msgstr "Ricerca"
 
+#: idesearchpanel.spsearcherror
+msgid "Error in search term"
+msgstr "Errore nel termine di ricerca"
+
 #: idesearchpanel.spsearchoptions
 msgid "Search options"
 msgstr "Opzioni di ricerca"

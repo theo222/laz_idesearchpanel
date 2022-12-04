@@ -49,6 +49,10 @@ msgstr ""
 msgid "Search"
 msgstr ""
 
+#: idesearchpanel.spsearcherror
+msgid "Error in search term"
+msgstr ""
+
 #: idesearchpanel.spsearchoptions
 msgid "Search options"
 msgstr ""

@@ -49,6 +49,10 @@ msgstr "Beim Tippen suchen"
 msgid "Search"
 msgstr "Suchen"
 
+#: idesearchpanel.spsearcherror
+msgid "Error in search term"
+msgstr "Fehler im Suchbegriff"
+
 #: idesearchpanel.spsearchoptions
 msgid "Search options"
 msgstr "Suchoptionen"

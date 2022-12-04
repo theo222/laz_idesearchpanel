@@ -56,6 +56,7 @@ resourcestring
   spSearch = 'Search';
   spReplace = 'Replace';
   spClose = 'Close panel';
+  spSearchError = 'Error in search term';
 
 type
   TSearchEnum = (soCaseSens, soWholeWords, soRegex, soSAYT, soFromCursor, soIncremental,
@@ -377,29 +378,36 @@ begin
     except
       fLabel.Transparent := False;
       fLabel.Color := $009595E6;
-      fLabel.Caption := 'Fehler im Suchbegriff';
+      fLabel.Caption := spSearchError;
       exit;
     end;
 
-    fSrchResultList.Clear;
-    fSrchResultIndex := 0;
-    if fSrch.FindNextOne(Synedit.Lines, SP, EP, FoundSP, FoundEP) then
-    begin
-      SynEdit.BlockBegin := FoundSP;
-      SynEdit.BlockEnd := FoundEP;
-      RegisterLastAutoSelection(SynEdit);
-      //SynEdit.SelText:=fSrch.Replacement;
-      ScrollToCaret;
-      Application.ProcessMessages;
-      ARec.Start := FoundSP;
-      ARec.Ende := FoundEP;
-      fSrchResultList.Add(aRec);
-      while fSrch.FindNextOne(Synedit.Lines, FoundEP, EP, FoundSP, FoundEP) do
+    try
+      fSrchResultList.Clear;
+      fSrchResultIndex := 0;
+      if fSrch.FindNextOne(Synedit.Lines, SP, EP, FoundSP, FoundEP) then
       begin
+        SynEdit.BlockBegin := FoundSP;
+        SynEdit.BlockEnd := FoundEP;
+        RegisterLastAutoSelection(SynEdit);
+        //SynEdit.SelText:=fSrch.Replacement;
+        ScrollToCaret;
+        Application.ProcessMessages;
         ARec.Start := FoundSP;
         ARec.Ende := FoundEP;
         fSrchResultList.Add(aRec);
+        while fSrch.FindNextOne(Synedit.Lines, FoundEP, EP, FoundSP, FoundEP) do
+        begin
+          ARec.Start := FoundSP;
+          ARec.Ende := FoundEP;
+          fSrchResultList.Add(aRec);
+        end;
       end;
+    except
+      fLabel.Transparent := False;
+      fLabel.Color := $009595E6;
+      fLabel.Caption := spSearchError;
+      exit;
     end;
     if fSrchResultList.Count > 0 then
       fLabel.Caption := '1 / ' + fSrchResultList.Count.ToString
