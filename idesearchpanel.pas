@@ -104,10 +104,13 @@ type
     fLastChangeStamp: int64;
     fLastSearchText: string;
     fSavedSelection: TSrchResult;
+    fLastAutoSelection: TSrchResult;
+    function CompareLastAutoSelection(ASynEdit: TSynEdit): boolean;
     procedure HideOptions;
     procedure MainWindowStateChange(Sender: TObject);
     procedure AEditChange(Sender: TObject);
     procedure AEditKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
+    procedure RegisterLastAutoSelection(ASynEdit: TSynEdit);
     procedure RememberSynEdit(ASynEdit: TSynEdit);
     function SameSynEdit(ASynEdit: TSynEdit): boolean;
     function SameSynEditSelection(ASynEdit: TSynEdit): boolean;
@@ -210,6 +213,8 @@ end;
 
 function TIDESearchPanel.SameSyneditSelTextAndSearchText(ASynEdit: TSynEdit): boolean;
 begin
+  if fState.Regex then Exit(True);
+
   if Assigned(ASynEdit) then
   begin
     if fState.CaseSensitive then
@@ -233,6 +238,18 @@ begin
       fSavedSelection.Ende := ASynEdit.BlockEnd;
     end;
   end;
+end;
+
+procedure TIDESearchPanel.RegisterLastAutoSelection(ASynEdit: TSynEdit);
+begin
+  fLastAutoSelection.Start := ASynEdit.BlockBegin;
+  fLastAutoSelection.Ende := ASynEdit.BlockEnd;
+end;
+
+function TIDESearchPanel.CompareLastAutoSelection(ASynEdit: TSynEdit): boolean;
+begin
+  Result := (fLastAutoSelection.Start = ASynEdit.BlockBegin) and
+    (fLastAutoSelection.Ende = ASynEdit.BlockEnd);
 end;
 
 
@@ -295,7 +312,6 @@ begin
     if (fLastSearchText <> fSearchEdit.Text) then SearchFirst
     else
       SearchNext;
-
   //Tipp von Ally:
   // Strg+V abfangen und PasteFromClipboard ausführen, weil sonst Paste im Synedit ausgeführt wird. (Obwohl es nicht den Focus hat.)
   if (ssCtrl in Shift) and (Key = VK_V) then
@@ -309,7 +325,6 @@ begin
     fSearchEdit.CopyToClipboard;
     Key := 0;
   end;
-
 end;
 
 
@@ -324,9 +339,13 @@ begin
     RememberSynEdit(SynEdit);
     if fSearchEdit.Text = '' then Exit;
 
+    fLabel.Transparent := True;
+    fLabel.Color := clDefault;
+
     fLastSearchText := fSearchEdit.Text;
 
-    if Synedit.SelAvail and not fState.SAYT then
+    if Synedit.SelAvail and (not CompareLastAutoSelection(SynEdit)) and
+      (not fState.SAYT) then
     begin
       SP := SynEdit.BlockBegin;
       EP := SynEdit.BlockEnd;
@@ -340,6 +359,7 @@ begin
       EP := Point(Maxint, Maxint);
     end;
 
+    fSrch.ClearResults;
     fSrch.Pattern := fSearchEdit.Text;
     // fSrch.Replacement:=fReplaceEdit.Text;
     // fSrch.RegularExpressions:=true;
@@ -347,10 +367,19 @@ begin
     fSrch.Sensitive := fState.CaseSensitive;
     fSrch.Whole := fState.WholeWords;
     fSrch.RegularExpressions := fState.Regex;
-    if (Length(fSearchEdit.Text) > 1) and (fState.Incremental) then
-      SynEdit.SetHighlightSearch(fSearchEdit.Text, GetSearchOptions)
-    else
-      SynEdit.SetHighlightSearch('', []);
+    fSrch.RegExprMultiLine := False;
+
+    try
+      if (Length(fSearchEdit.Text) > 1) and (fState.Incremental) then
+        SynEdit.SetHighlightSearch(fSearchEdit.Text, GetSearchOptions)
+      else
+        SynEdit.SetHighlightSearch('', []);
+    except
+      fLabel.Transparent := False;
+      fLabel.Color := $009595E6;
+      fLabel.Caption := 'Fehler im Suchbegriff';
+      exit;
+    end;
 
     fSrchResultList.Clear;
     fSrchResultIndex := 0;
@@ -358,6 +387,7 @@ begin
     begin
       SynEdit.BlockBegin := FoundSP;
       SynEdit.BlockEnd := FoundEP;
+      RegisterLastAutoSelection(SynEdit);
       //SynEdit.SelText:=fSrch.Replacement;
       ScrollToCaret;
       Application.ProcessMessages;
@@ -377,6 +407,7 @@ begin
     begin
       fLabel.Caption := '0 / 0';
       SynEdit.BlockBegin := SynEdit.BlockEnd;
+      RegisterLastAutoSelection(SynEdit);
     end;
   end;
 end;
@@ -402,6 +433,7 @@ begin
       aRec := fSrchResultList[fSrchResultIndex];
       SynEdit.BlockBegin := aRec.Start;
       SynEdit.BlockEnd := aRec.Ende;
+      RegisterLastAutoSelection(SynEdit);
       ScrollToCaret;
       fLabel.Caption := (fSrchResultIndex + 1).ToString + ' / ' +
         fSrchResultList.Count.ToString;
@@ -429,6 +461,7 @@ begin
       aRec := fSrchResultList[fSrchResultIndex];
       SynEdit.BlockBegin := aRec.Start;
       SynEdit.BlockEnd := aRec.Ende;
+      RegisterLastAutoSelection(SynEdit);
       ScrollToCaret;
       fLabel.Caption := (fSrchResultIndex + 1).ToString + ' / ' +
         fSrchResultList.Count.ToString;
@@ -609,11 +642,12 @@ end;
 
 procedure TIDESearchPanel.AllocControls(AParent: TWinControl);
 var
-  PrevCtrl: TControl;
   Black: string;
 begin
   {$IFDEF DebugSayt} DebugSayt('AllocControls', ''); {$ENDIF}
-  if fState.BlackIcons then Black := '_black' else Black:='';
+  if fState.BlackIcons then Black := '_black'
+  else
+    Black := '';
   fPanel := TPanel.Create(AParent);
   fPanel.Parent := AParent;
   fPanel.BorderStyle := bsNone;
@@ -629,10 +663,9 @@ begin
   fSearchEdit.OnChange := @AEditChange;
   fSearchEdit.OnKeyDown := @AEditKeyDown;
 
-  PrevCtrl := fSearchEdit;
   fNext := TBitBtn.Create(fPanel);
   fNext.AutoSize := False;
-  fNext.GlyphShowMode:=gsmAlways;
+  fNext.GlyphShowMode := gsmAlways;
   fNext.Width := fPanel.Scale96ToFont(50);
   fNext.Caption := '';
   fNext.Hint := spFindNext;
@@ -642,7 +675,6 @@ begin
   fNext.ImageIndex := IDEImages.Images_16.GetImageIndex('arrow_28' + Black);
   fNext.OnClick := @NextClick;
 
-  PrevCtrl := fNext;
   fPrev := TBitBtn.Create(fPanel);
   fPrev.AutoSize := False;
   fPrev.GlyphShowMode := gsmAlways;
@@ -655,7 +687,6 @@ begin
   fPrev.ImageIndex := IDEImages.Images_16.GetImageIndex('arrow_27' + Black);
   fPrev.OnClick := @PrevClick;
 
-  PrevCtrl := fPrev;
   fOptions := TSpeedButton.Create(fpanel);
   fOptions.Hint := spSearchOptions;
   fOptions.ShowHint := True;
@@ -666,12 +697,11 @@ begin
   fOptions.ImageIndex := IDEImages.Images_16.GetImageIndex('setup_06' + Black);
   fOptions.OnClick := @OptionsClick;
 
-  PrevCtrl := fOptions;
   fLabel := TLabel.Create(fPanel);
   fLabel.Parent := fPanel;
   fLabel.Caption := '0/0';
   fLabel.AutoSize := True;
-//  fLabel.Width := 60;         // kann nach AutoSize=true nicht mehr geändert werden
+  //  fLabel.Width := 60;         // kann nach AutoSize=true nicht mehr geändert werden
   fLabel.Alignment := taCenter;
   fLabel.Caption := '0/0';
 
@@ -698,7 +728,7 @@ begin
 
   {$IFDEF ImageHasImageList}
   fClose := TImage.Create(fpanel);
-  fClose.Center:=true;
+  fClose.Center := True;
   {$ELSE}
   fClose := TSpeedButton.Create(fPanel);
   fClose.Flat := true;
@@ -720,7 +750,7 @@ const
   MARGIN = 5;
 var
   PrevCtrl: TControl;
-  scaledMargin: Integer;
+  scaledMargin: integer;
 begin
   scaledMargin := fPanel.Scale96ToFont(MARGIN);
 
@@ -756,7 +786,7 @@ begin
   fOptions.Top := PrevCtrl.Top + PrevCtrl.Height - fOptions.Height;
 
   PrevCtrl := fOptions;
-  fLabel.Left := PrevCtrl.Left + PrevCtrl.Width + 2*scaledMargin;
+  fLabel.Left := PrevCtrl.Left + PrevCtrl.Width + 2 * scaledMargin;
   fLabel.Top := PrevCtrl.Top + (PrevCtrl.Height - fLabel.Height) div 2;
 
 end;
