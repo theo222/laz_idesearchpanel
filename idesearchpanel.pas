@@ -359,7 +359,7 @@ begin
      Exit;
     end;
     fLabel.Transparent := True;
-    fLabel.Color := clDefault;
+    fLabel.Color := clNone;
 
     fLastSearchText := fSearchEdit.Text;
 
