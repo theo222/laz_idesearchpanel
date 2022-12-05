@@ -532,6 +532,9 @@ begin
       HideOptions;
       fPanel.Visible := False;
       Cmd.Checked := False;
+     if assigned(SourceEditorManagerIntf) and assigned(SourceEditorManagerIntf.ActiveSourceWindow) and
+       assigned(SourceEditorManagerIntf.ActiveSourceWindow.ActiveEditor) then
+        SourceEditorManagerIntf.ActiveSourceWindow.ActiveEditor.EditorControl.SetFocus;
     end;
     Result := True;
   end;
