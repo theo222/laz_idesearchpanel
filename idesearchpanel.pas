@@ -952,7 +952,7 @@ begin
   Cat:=IDECommandList.FindIDECommand(ecFind).Category;
   CmdMyTool := RegisterIDECommand(Cat,mnuShowPanel, mnuShowPanel, Key, @ASearchPanel.OnCmdClick, nil);
   Cmd := RegisterIDEMenuCommand(itmSearchFindReplace, 'showSearchPanel', mnuShowPanel,  nil, nil, CmdMyTool);
-  Cmd := RegisterIDEMenuCommand(itmSearchFindReplace, 'showSearchPanel', mnuShowPanel, @ASearchPanel.OnCmdClick, nil, nil, '');
+  //Cmd := RegisterIDEMenuCommand(itmSearchFindReplace, 'showSearchPanel', mnuShowPanel, @ASearchPanel.OnCmdClick, nil, nil, '');
   try
     ASearchPanel.LoadStates;
   except
