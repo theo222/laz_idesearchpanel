@@ -34,13 +34,10 @@ uses
   Graphics,
   LCLProc,
   fgl,
+  Themes,
   DefaultTranslator
   {$IFDEF LazLogger},LazLoggerBase{$ENDIF}
   ;
-
-{$IF LCL_FullVersion >= 2030000}
- {$DEFINE ImageHasImageList}
-{$ENDIF}
 
 procedure Register;
 
@@ -87,6 +84,16 @@ type
 
   TSrchResultList = specialize TFpgList<TSrchResult>;
 
+  { TThemedControl }
+
+  TThemedControl = class(TCustomControl)
+  private
+    fDetails: TThemedElementDetails;
+  public
+    constructor Create(AOwner: TComponent; Detail: TThemedWindow);
+    procedure Paint; override;
+  end;
+
   { TIDESearchPanel }
 
   TIDESearchPanel = class(TObject)
@@ -98,7 +105,7 @@ type
     fOptionsForm: TForm;
     fOptionsCheckGroup: TCheckGroup;
     fState: TSearchState;
-    fClose: {$IFDEF ImageHasImageList}TImage{$ELSE}TSpeedButton{$ENDIF};
+    fClose: TThemedControl;
     fLabel: TLabel;
     fPanel: TPanel;
     fSrch: TSynEditSearch;
@@ -432,6 +439,7 @@ end;
 procedure TIDESearchPanel.CloseClick(Sender: TObject);
 begin
   DoChangePanelVisibility(False);
+  fState.InitiallyVisible := false;
 end;
 
 procedure TIDESearchPanel.SearchNext;
@@ -742,21 +750,11 @@ begin
 
   SyncButtonsFromSearchState;
 
-  {$IFDEF ImageHasImageList}
-  fClose := TImage.Create(fpanel);
-  fClose.Center := True;
-  {$ELSE}
-  fClose := TSpeedButton.Create(fPanel);
-  fClose.Flat := true;
-  {$ENDIF}
-  fClose.Parent := fPanel;
-  fClose.Width := fPanel.Scale96ToFont(16);
-  fClose.Height := fPanel.Scale96ToFont(16);
+  fClose:=TThemedControl.Create(fPanel,twSmallCloseButtonNormal);
+  fClose.Parent:=fPanel;
   fClose.OnClick := @CloseClick;
   fClose.Hint := spClose;
   fClose.ShowHint := True;
-  fClose.Images := IDEImages.Images_16;
-  fClose.ImageIndex := IDEImages.Images_16.GetImageIndex('laz_cancel' + Black);
 
   RealignControls;
 end;
@@ -770,8 +768,8 @@ var
 begin
   scaledMargin := fPanel.Scale96ToFont(MARGIN);
 
-  fClose.Left := fPanel.Width - fPanel.Scale96ToFont(22);
-  fClose.Top := fPanel.Scale96ToFont(4);
+  fClose.Left := fPanel.Width -fClose.Width - 6;
+  fClose.Top := 6;
 
   fPanel.Height := fSearchEdit.Height + fPanel.Scale96ToFont(12);
 
@@ -909,6 +907,24 @@ begin
   finally
     cfg.Free;
   end;
+end;
+
+{ TThemedControl }
+
+constructor TThemedControl.Create(AOwner: TComponent; Detail: TThemedWindow);
+var Size:TSize;
+begin
+  inherited Create(AOwner);
+  fDetails := ThemeServices.GetElementDetails(Detail);
+  Size:=ThemeServices.GetDetailSize(fDetails);
+  Width:=Size.cx;
+  Height:=Size.cy;
+end;
+
+procedure TThemedControl.Paint;
+begin
+  inherited Paint;
+  ThemeServices.DrawElement(Canvas.Handle, fDetails, Rect(0,0,Width,Height),Nil);
 end;
 
 { TSrchResult }
