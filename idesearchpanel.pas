@@ -353,8 +353,11 @@ begin
   if GetSynEdit(SynEdit) then
   begin
     RememberSynEdit(SynEdit);
-    if fSearchEdit.Text = '' then Exit;
-
+    if fSearchEdit.Text = '' then
+    begin
+     fLabel.Caption := '0 / 0';
+     Exit;
+    end;
     fLabel.Transparent := True;
     fLabel.Color := clDefault;
 
