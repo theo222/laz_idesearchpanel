@@ -165,7 +165,7 @@ type
   end;
 
 var
-  cmd: TIDEMenuCommand = nil;
+  Cmd: TIDEMenuCommand = nil;
   ASearchPanel: TIDESearchPanel = nil;
   CmdMessageComposer: TIDECommand;
 
@@ -517,7 +517,7 @@ begin
       fPanel.Parent := SourceEditorManagerIntf.ActiveSourceWindow;
     end;
     fPanel.Visible := True;
-    cmd.Checked := True;
+    Cmd.Checked := True;
     fPanel.Height := 40;
     fSearchEdit.SetFocus;
     Result := True;
@@ -528,7 +528,7 @@ begin
     begin
       HideOptions;
       fPanel.Visible := False;
-      cmd.Checked := False;
+      Cmd.Checked := False;
     end;
     Result := True;
   end;
@@ -937,10 +937,16 @@ begin
 end;
 
 procedure Register;
+var Key: TIDEShortCut;
+    Cat: TIDECommandCategory;
+    CmdMyTool: TIDECommand;
 begin
   ASearchPanel := TIDESearchPanel.Create;
-  cmd := RegisterIDEMenuCommand(itmSearchFindReplace, 'showSearchPanel',
-    mnuShowPanel, @ASearchPanel.OnCmdClick, nil, nil, '');
+  Key := IDEShortCut(VK_P,[ssCtrl],VK_UNKNOWN,[]);
+  Cat:=IDECommandList.FindIDECommand(ecFind).Category;
+  CmdMyTool := RegisterIDECommand(Cat,mnuShowPanel, mnuShowPanel, Key, @ASearchPanel.OnCmdClick, nil);
+  Cmd := RegisterIDEMenuCommand(itmSearchFindReplace, 'showSearchPanel', mnuShowPanel,  nil, nil, CmdMyTool);
+  Cmd := RegisterIDEMenuCommand(itmSearchFindReplace, 'showSearchPanel', mnuShowPanel, @ASearchPanel.OnCmdClick, nil, nil, '');
   try
     ASearchPanel.LoadStates;
   except
