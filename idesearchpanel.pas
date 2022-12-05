@@ -584,6 +584,8 @@ begin
   {$ENDIF}
   DoChangePanelVisibility(fState.InitiallyVisible);
   Result := mrOk;
+  if Assigned(LazarusIDE.LastFormActivated) then
+    LazarusIDE.LastFormActivated.BringToFront;
 end;
 
 function CreateXMLConfig(const xmlfile: string): TXMLConfig;
