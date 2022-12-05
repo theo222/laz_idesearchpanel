@@ -2,6 +2,7 @@ unit idesearchpanel;
 
 {$mode objfpc}{$H+}
 {_$DEFINE DebugSayt}
+{_$DEFINE LazLogger}
 {$MODESWITCH AdvancedRecords+}
 
 interface
@@ -33,7 +34,9 @@ uses
   Graphics,
   LCLProc,
   fgl,
-  DefaultTranslator;
+  DefaultTranslator
+  {$IFDEF LazLogger},LazLoggerBase{$ENDIF}
+  ;
 
 {$IF LCL_FullVersion >= 2030000}
  {$DEFINE ImageHasImageList}
@@ -133,7 +136,7 @@ type
     function SyncButtonsFromSearchState: boolean;
     function SyncSearchStateFromButtons: boolean;
   protected
-    function DoChangePanelVisibility(PanelVisiible: boolean): boolean;
+    function DoChangePanelVisibility(PanelVisible: boolean): boolean;
     procedure LoadState(cfg: TXMLConfig; const StateName: string);
     procedure SaveState(cfg: TXMLConfig; const StateName: string);
     procedure LoadStates;
@@ -173,8 +176,13 @@ uses Math;
 {$IFDEF DebugSayt}
 procedure DebugSayt(Sendr: string; Msg: string);
 begin
+ {$IFDEF LazLogger}
+  debugln(['SAYT: ', Sendr, ': ', Msg]);
+ {$ELSE}
   writeln('SAYT: ', Sendr, ': ', Msg);
+ {$ENDIF}
 end;
+
 {$ENDIF}
 
 { TIDESearchPanel }
@@ -482,12 +490,12 @@ begin
   SearchPrev;
 end;
 
-function TIDESearchPanel.DoChangePanelVisibility(PanelVisiible: boolean): boolean;
+function TIDESearchPanel.DoChangePanelVisibility(PanelVisible: boolean): boolean;
 begin
   {$IFDEF DebugSayt}
-  DebugSayt('DoChangeDocking', PanelVisiible.ToString(True));
+  DebugSayt('DoChangePanelVisibility', PanelVisible.ToString(TUseBoolStrs.True));
   {$ENDIF}
-  if PanelVisiible then
+  if PanelVisible then
   begin
     Result := False;
     if not (Assigned(SourceEditorManagerIntf) and
@@ -502,7 +510,6 @@ begin
     end;
     fPanel.Visible := True;
     cmd.Checked := True;
-
     fPanel.Height := 40;
     fSearchEdit.SetFocus;
     Result := True;
@@ -532,15 +539,8 @@ begin
   end;
   fSrch := TSynEditSearch.Create;
   fSrchResultList := TSrchResultList.Create;
-  try
-    ConfigPath := IncludeTrailingPathDelimiter(LazarusIDE.GetPrimaryConfigPath) +
-      DockCfgXML;
-    LoadStates;
-  except
-{$IFDEF DebugSayt}
-    DebugSayt('Exception LoadStates', '');
-{$ENDIF}
-  end;
+  ConfigPath := IncludeTrailingPathDelimiter(LazarusIDE.GetPrimaryConfigPath) +
+    DockCfgXML;
 end;
 
 destructor TIDESearchPanel.Destroy;
@@ -556,16 +556,23 @@ end;
 procedure TIDESearchPanel.OnCmdClick(Sender: TObject);
 begin
   {$IFDEF DebugSayt}
-  DebugSayt('Destroy', Cmd.Checked.ToString(True));
+  DebugSayt('OnCmdClick', Cmd.Checked.ToString(TUseBoolStrs.True));
   {$ENDIF}
-  DoChangePanelVisibility(not Cmd.Checked);
+  if Cmd <> nil then
+  begin
+    fState.InitiallyVisible := not Cmd.Checked;
+    DoChangePanelVisibility(not Cmd.Checked);
+  end;
+  {$IFDEF DebugSayt}
+  DebugSayt('OnCmdClick2', Cmd.Checked.ToString(TUseBoolStrs.True));
+  {$ENDIF}
 end;
 
 function TIDESearchPanel.OnProjectOpen(Sender: TObject;
   AProject: TLazProject): TModalResult;
 begin
   {$IFDEF DebugSayt}
-  DebugSayt('OnProjectOpen', fState.InitiallyVisible.ToString(True));
+  DebugSayt('OnProjectOpen', fState.InitiallyVisible.ToString(TUseBoolStrs.True));
   {$ENDIF}
   DoChangePanelVisibility(fState.InitiallyVisible);
   Result := mrOk;
@@ -653,6 +660,7 @@ var
   Black: string;
 begin
   {$IFDEF DebugSayt} DebugSayt('AllocControls', ''); {$ENDIF}
+  FCurrentSrcWin := AParent;
   if fState.BlackIcons then Black := '_black'
   else
     Black := '';
@@ -834,7 +842,6 @@ end;
 procedure TIDESearchPanel.UpdateDockState(var astate: TSearchState; wnd: TWinControl);
 begin
    {$IFDEF DebugSayt} DebugSayt('UpdateDockState', ''); {$ENDIF}
-  Astate.InitiallyVisible := fPanel.Visible;
 end;
 
 procedure TIDESearchPanel.LoadState(cfg: TXMLConfig; const StateName: string);
@@ -845,7 +852,6 @@ procedure TIDESearchPanel.LoadState(cfg: TXMLConfig; const StateName: string);
   end;
 
 begin
-{$IFDEF DebugSayt} DebugSayt('LoadState', ''); {$ENDIF}
   fState.CaseSensitive := _GetValue(StateName + '/CaseSensitive', False);
   fState.WholeWords := _GetValue(StateName + '/WholeWords', False);
   fState.Regex := _GetValue(StateName + '/Regex', False);
@@ -854,6 +860,8 @@ begin
   fState.Incremental := _GetValue(StateName + '/Incremental', True);
   fState.InitiallyVisible := _GetValue(StateName + '/InitiallyVisible', True);
   fState.BlackIcons := _GetValue(StateName + '/BlackIcons', True);
+  {$IFDEF DebugSayt} DebugSayt('LoadState: InitiallyVisible=',
+    fState.InitiallyVisible.ToString(TUseBoolStrs.True)); {$ENDIF}
 end;
 
 procedure TIDESearchPanel.SaveState(cfg: TXMLConfig; const StateName: string);
@@ -864,7 +872,8 @@ procedure TIDESearchPanel.SaveState(cfg: TXMLConfig; const StateName: string);
   end;
 
 begin
-{$IFDEF DebugSayt} DebugSayt('SaveState', ''); {$ENDIF}
+{$IFDEF DebugSayt} DebugSayt('SaveState InitiallyVisible=',
+    fState.InitiallyVisible.ToString(TUseBoolStrs.True)); {$ENDIF}
   UpdateDockState(fState, nil);
   _SetValue(StateName + '/CaseSensitive', fState.CaseSensitive);
   _SetValue(StateName + '/WholeWords', fState.WholeWords);
@@ -884,7 +893,6 @@ begin
   cfg := CreateXMLConfig(ConfigPath);
   try
     LoadState(cfg, NodeName);
-    OnCmdClick(self);
   finally
     cfg.Free;
   end;
@@ -915,6 +923,13 @@ begin
   ASearchPanel := TIDESearchPanel.Create;
   cmd := RegisterIDEMenuCommand(itmSearchFindReplace, 'showSearchPanel',
     mnuShowPanel, @ASearchPanel.OnCmdClick, nil, nil, '');
+  try
+    ASearchPanel.LoadStates;
+  except
+ {$IFDEF DebugSayt}
+    DebugSayt('Exception LoadStates', '');
+ {$ENDIF}
+  end;
   LazarusIDE.AddHandlerOnProjectOpened(@ASearchPanel.OnProjectOpen, False);
   LazarusIDE.GetMainBar.OnWindowStateChange := @ASearchPanel.MainWindowStateChange;
 end;
