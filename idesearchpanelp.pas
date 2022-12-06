@@ -8,7 +8,7 @@ unit idesearchpanelp;
 interface
 
 uses
-  idesearchpanel, LazarusPackageIntf;
+  idesearchpanel, themedclosebutton, LazarusPackageIntf;
 
 implementation
 

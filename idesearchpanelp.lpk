@@ -17,6 +17,10 @@
         <HasRegisterProc Value="True"/>
         <UnitName Value="idesearchpanel"/>
       </Item>
+      <Item>
+        <Filename Value="themedclosebutton.pas"/>
+        <UnitName Value="themedclosebutton"/>
+      </Item>
     </Files>
     <i18n>
       <EnableI18N Value="True"/>

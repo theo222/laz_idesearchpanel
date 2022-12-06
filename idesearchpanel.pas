@@ -35,7 +35,8 @@ uses
   LCLProc,
   fgl,
   Themes,
-  DefaultTranslator
+  DefaultTranslator,
+  themedclosebutton
   {$IFDEF LazLogger},LazLoggerBase{$ENDIF}
   ;
 
@@ -72,6 +73,7 @@ type
     RegExMultiLine: boolean;
     InitiallyVisible: boolean;
     BlackIcons: boolean;
+    ShortCut:String;
   end;
 
   { TSrchResult }
@@ -84,15 +86,6 @@ type
 
   TSrchResultList = specialize TFpgList<TSrchResult>;
 
-  { TThemedControl }
-
-  TThemedControl = class(TCustomControl)
-  private
-    fDetails: TThemedElementDetails;
-  public
-    constructor Create(AOwner: TComponent; Detail: TThemedWindow);
-    procedure Paint; override;
-  end;
 
   { TIDESearchPanel }
 
@@ -105,7 +98,7 @@ type
     fOptionsForm: TForm;
     fOptionsCheckGroup: TCheckGroup;
     fState: TSearchState;
-    fClose: TThemedControl;
+    fClose: TThemedCloseButton;
     fLabel: TLabel;
     fPanel: TPanel;
     fSrch: TSynEditSearch;
@@ -162,6 +155,7 @@ type
     destructor Destroy; override;
     procedure OnCmdClick(Sender: TObject);
     function OnProjectOpen(Sender: TObject; AProject: TLazProject): TModalResult;
+    property State:TSearchState read fState;
   end;
 
 var
@@ -705,6 +699,7 @@ begin
   fNext.Parent := fPanel;
   fNext.Images := IDEImages.Images_16;
   fNext.ImageIndex := IDEImages.Images_16.GetImageIndex('arrow_28' + Black);
+  fNext.ImageWidth:=13;
   fNext.OnClick := @NextClick;
 
   fPrev := TBitBtn.Create(fPanel);
@@ -717,6 +712,7 @@ begin
   fPrev.Parent := fPanel;
   fPrev.Images := IDEImages.Images_16;
   fPrev.ImageIndex := IDEImages.Images_16.GetImageIndex('arrow_27' + Black);
+  fPrev.ImageWidth:=13;
   fPrev.OnClick := @PrevClick;
 
   fOptions := TSpeedButton.Create(fpanel);
@@ -727,6 +723,7 @@ begin
   fOptions.GroupIndex := -1;
   fOptions.Images := IDEImages.Images_16;
   fOptions.ImageIndex := IDEImages.Images_16.GetImageIndex('setup_06' + Black);
+  fOptions.ImageWidth:=13;
   fOptions.OnClick := @OptionsClick;
 
   fLabel := TLabel.Create(fPanel);
@@ -758,8 +755,9 @@ begin
 
   SyncButtonsFromSearchState;
 
-  fClose:=TThemedControl.Create(fPanel,twSmallCloseButtonNormal);
+  fClose:=TThemedCloseButton.Create(fPanel);
   fClose.Parent:=fPanel;
+  fClose.SetPreferredSize;
   fClose.OnClick := @CloseClick;
   fClose.Hint := spClose;
   fClose.ShowHint := True;
@@ -866,6 +864,7 @@ begin
   fState.Incremental := _GetValue(StateName + '/Incremental', True);
   fState.InitiallyVisible := _GetValue(StateName + '/InitiallyVisible', True);
   fState.BlackIcons := _GetValue(StateName + '/BlackIcons', True);
+  fState.ShortCut:=cfg.GetValue(UTF8Decode(StateName + '/ShortCut'), 'Ctrl+P');
   {$IFDEF DebugSayt} DebugSayt('LoadState: InitiallyVisible=',
     fState.InitiallyVisible.ToString(TUseBoolStrs.True)); {$ENDIF}
 end;
@@ -889,6 +888,7 @@ begin
   _SetValue(StateName + '/Incremental', fState.Incremental);
   _SetValue(StateName + '/InitiallyVisible', fState.InitiallyVisible);
   _SetValue(StateName + '/BlackIcons', fState.BlackIcons);
+  //cfg.SetValue(UTF8Decode(StateName + '/ShortCut'), fState.ShortCut);
 end;
 
 procedure TIDESearchPanel.LoadStates;
@@ -917,24 +917,6 @@ begin
   end;
 end;
 
-{ TThemedControl }
-
-constructor TThemedControl.Create(AOwner: TComponent; Detail: TThemedWindow);
-var Size:TSize;
-begin
-  inherited Create(AOwner);
-  fDetails := ThemeServices.GetElementDetails(Detail);
-  Size:=ThemeServices.GetDetailSize(fDetails);
-  Width:=Size.cx;
-  Height:=Size.cy;
-end;
-
-procedure TThemedControl.Paint;
-begin
-  inherited Paint;
-  ThemeServices.DrawElement(Canvas.Handle, fDetails, Rect(0,0,Width,Height),Nil);
-end;
-
 { TSrchResult }
 
 class operator TSrchResult. = (Left, Right: TSrchResult): boolean;
@@ -946,13 +928,10 @@ procedure Register;
 var Key: TIDEShortCut;
     Cat: TIDECommandCategory;
     CmdMyTool: TIDECommand;
+    Key1:Word;
+    Shift1:TShiftState;
 begin
   ASearchPanel := TIDESearchPanel.Create;
-  Key := IDEShortCut(VK_P,[ssCtrl],VK_UNKNOWN,[]);
-  Cat:=IDECommandList.FindIDECommand(ecFind).Category;
-  CmdMyTool := RegisterIDECommand(Cat,mnuShowPanel, mnuShowPanel, Key, @ASearchPanel.OnCmdClick, nil);
-  Cmd := RegisterIDEMenuCommand(itmSearchFindReplace, 'showSearchPanel', mnuShowPanel,  nil, nil, CmdMyTool);
-  //Cmd := RegisterIDEMenuCommand(itmSearchFindReplace, 'showSearchPanel', mnuShowPanel, @ASearchPanel.OnCmdClick, nil, nil, '');
   try
     ASearchPanel.LoadStates;
   except
@@ -960,6 +939,11 @@ begin
     DebugSayt('Exception LoadStates', '');
  {$ENDIF}
   end;
+  ShortCutToKey(TextToShortCutRaw(Trim(ASearchPanel.State.ShortCut)),Key1,Shift1);
+  Key := IDEShortCut(Key1,Shift1,VK_UNKNOWN,[]);
+  Cat:=IDECommandList.FindIDECommand(ecFind).Category;
+  CmdMyTool := RegisterIDECommand(Cat,mnuShowPanel, mnuShowPanel, Key, @ASearchPanel.OnCmdClick, nil);
+  Cmd := RegisterIDEMenuCommand(itmSearchFindReplace, 'showSearchPanel', mnuShowPanel,  nil, nil, CmdMyTool);
   LazarusIDE.AddHandlerOnProjectOpened(@ASearchPanel.OnProjectOpen, False);
   LazarusIDE.GetMainBar.OnWindowStateChange := @ASearchPanel.MainWindowStateChange;
 end;
