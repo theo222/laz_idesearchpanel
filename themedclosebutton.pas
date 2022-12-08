@@ -1,6 +1,6 @@
 unit themedclosebutton;
 
-//Large parts of this code are copied from Anchordocking to achieve the same look.
+//Large parts of this code are copied from Anchordocking to achieve the same look for the close button.
 
 {$mode ObjFPC}{$H+}
 
@@ -17,13 +17,14 @@ type
   private
     fDetails: TThemedElementDetails;
     fPPI: integer;
+  protected
     procedure CalculatePreferredSize(var PreferredWidth, PreferredHeight: integer;
       WithThemeSpace: boolean); override;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Paint; override;
     procedure SetPreferredSize;
-    property PPI:integer read fPPI write fPPI;
+    property PPI: integer read fPPI write fPPI;
   end;
 
 var
@@ -71,7 +72,7 @@ var
   Size: TSize;
 begin
   inherited Create(AOwner);
-  fPPI:=Screen.PixelsPerInch;
+  fPPI := Screen.PixelsPerInch;
   fDetails := ThemeServices.GetElementDetails(
     {$IFDEF LCLWIN32}
     twCloseButtonNormal
