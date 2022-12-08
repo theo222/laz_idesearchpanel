@@ -46,7 +46,7 @@ If you prefer blue instead of black icons, add to idesearchpanelconfig.xml:
    &lt;SPConfig ShortCut=&quot;Ctrl+P&quot; BlackIcons=&quot;False&quot;/&gt;
 </pre>
 
-###Options:
+### Options:
 
 Please Note: "Regular Expressions" and "Search-as-you-type" are mutually exclusive.
 
