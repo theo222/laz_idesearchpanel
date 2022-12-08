@@ -1,9 +1,9 @@
 # Lazarus IDESearchPanel
 Search panel plugin for the Lazarus IDE
 
-<img src="https://www.theo.ch/upload/Win_Searchpanel1.png" alt="Searchpanel Windows 10" width="600"/>
+<img src="https://www.theo.ch/upload/Win_Searchpanel1.png" alt="Searchpanel Windows 10" width="800"/>
 
-<img src="https://www.theo.ch/upload/GTK_Searchpanel1.png" alt="Searchpanel Linux GTK2 with Options" width="600"/>
+<img src="https://www.theo.ch/upload/GTK_Searchpanel1.png" alt="Searchpanel Linux GTK2 with Options" width="800"/>
 
 
 ## Installation:

@@ -764,7 +764,7 @@ begin
 
   fPanel.Height := fSearchEdit.Height + fPanel.Scale96ToFont(12);
 
-  fSearchEdit.Width := fPanel.Width div 4;
+  fSearchEdit.Width := fPanel.Width div 3;
 
   PrevCtrl := fSearchEdit;
 
