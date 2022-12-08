@@ -17,7 +17,7 @@ https://wiki.lazarus.freepascal.org/Install_Packages
 To toggle the Search Panel on and off, there is a menu item called "Show Search Panel" under "Search".<br>
 You can also use CTRL+P.
 
-"Find Next" can be performed by the button or by simply pressing "Enter" again, when the focus is on the search edit.
+"Find Next" can be performed by the button or by simply pressing "Enter" again, while the focus is on the search edit.
 
 Ctrl+F, F3 etc. are reserved for the standard search window of the IDE and are not used by the Search Panel.
 
@@ -52,6 +52,6 @@ Please Note: "Regular Expressions" and "Search-as-you-type" are mutually exclusi
 
 Search in selected text only works if "Search-as-you-type" is deactivated.
 
-The rest should be self-explantory.
+The rest should be self-explanatory.
 
 HAVE FUN!
