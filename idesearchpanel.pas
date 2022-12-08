@@ -1,8 +1,7 @@
 unit idesearchpanel;
 
 {$mode objfpc}{$H+}
-{_$DEFINE DebugSayt}
-{_$DEFINE LazLogger}
+{_$DEFINE DebugSP}
 {$MODESWITCH AdvancedRecords+}
 
 interface
@@ -37,7 +36,7 @@ uses
   Themes,
   DefaultTranslator,
   themedclosebutton
-  {$IFDEF LazLogger},LazLoggerBase{$ENDIF}
+  {$IFDEF DebugSP},LazLoggerBase{$ENDIF}
   ;
 
 procedure Register;
@@ -137,16 +136,14 @@ type
     function SyncSearchStateFromButtons: boolean;
   protected
     function DoChangePanelVisibility(PanelVisible: boolean): boolean;
+    procedure LoadConfig(cfg: TXMLConfig; const ConfigName: string);
     procedure LoadState(cfg: TXMLConfig; const StateName: string);
     procedure SaveState(cfg: TXMLConfig; const StateName: string);
     procedure LoadStates;
     procedure SaveStates;
-
     procedure AllocControls(AParent: TWinControl);
     procedure DeallocControls;
     procedure RealignControls;
-    procedure UpdateDockState(var astate: TSearchState; wnd: TWinControl);
-
     procedure SourceWindowCreated(Sender: TObject);
     procedure SourceWindowDestroyed(Sender: TObject);
   public
@@ -161,12 +158,12 @@ type
 var
   Cmd: TIDEMenuCommand = nil;
   ASearchPanel: TIDESearchPanel = nil;
-  CmdMessageComposer: TIDECommand;
 
 const
-  DockCfgRoot = 'IDESearchPanelConfig';
-  DockCfgXML = 'idesearchpanelconfig.xml';
-  NodeName = 'SP';
+  SPCfgRoot = 'IDESearchPanelConfig';
+  SPCfgXML = 'idesearchpanelconfig.xml';
+  StateNodeName = 'SPState';
+  ConfigNodeName = 'SPConfig';
 
 implementation
 
@@ -174,16 +171,11 @@ implementation
 
 uses Math;
 
-{$IFDEF DebugSayt}
-procedure DebugSayt(Sendr: string; Msg: string);
+{$IFDEF DebugSP}
+procedure DebugSP(Sendr: string; Msg: string);
 begin
- {$IFDEF LazLogger}
-  debugln(['SAYT: ', Sendr, ': ', Msg]);
- {$ELSE}
-  writeln('SAYT: ', Sendr, ': ', Msg);
- {$ENDIF}
+  debugln(['DEBUGSP: ', Sendr, ': ', Msg]);
 end;
-
 {$ENDIF}
 
 { TIDESearchPanel }
@@ -304,8 +296,8 @@ end;
 
 procedure TIDESearchPanel.MainWindowStateChange(Sender: TObject);
 begin
- {$IFDEF DebugSayt}
-  DebugSayt('MainWindowStateChange', '');
+ {$IFDEF DebugSP}
+  DebugSP('MainWindowStateChange', '');
  {$ENDIF}
   HideOptions;
 end;
@@ -497,8 +489,8 @@ end;
 
 function TIDESearchPanel.DoChangePanelVisibility(PanelVisible: boolean): boolean;
 begin
-  {$IFDEF DebugSayt}
-  DebugSayt('DoChangePanelVisibility', PanelVisible.ToString(TUseBoolStrs.True));
+  {$IFDEF DebugSP}
+  DebugSP('DoChangePanelVisibility', PanelVisible.ToString(TUseBoolStrs.True));
   {$ENDIF}
   if PanelVisible then
   begin
@@ -536,8 +528,8 @@ end;
 
 constructor TIDESearchPanel.Create;
 begin
-{$IFDEF DebugSayt}
-  DebugSayt('Create', '');
+{$IFDEF DebugSP}
+  DebugSP('Create', '');
 {$ENDIF}
   if SourceEditorManagerIntf <> nil then
   begin
@@ -548,12 +540,12 @@ begin
   fSrch := TSynEditSearch.Create;
   fSrchResultList := TSrchResultList.Create;
   ConfigPath := IncludeTrailingPathDelimiter(LazarusIDE.GetPrimaryConfigPath) +
-    DockCfgXML;
+    SPCfgXML;
 end;
 
 destructor TIDESearchPanel.Destroy;
 begin
-  {$IFDEF DebugSayt} DebugSayt('Destroy', ''); {$ENDIF}
+  {$IFDEF DebugSP} DebugSP('Destroy', ''); {$ENDIF}
   SaveStates;
   DeallocControls;
   fSrchResultList.Free;
@@ -563,24 +555,24 @@ end;
 
 procedure TIDESearchPanel.OnCmdClick(Sender: TObject);
 begin
-  {$IFDEF DebugSayt}
-  DebugSayt('OnCmdClick', Cmd.Checked.ToString(TUseBoolStrs.True));
+  {$IFDEF DebugSP}
+  DebugSP('OnCmdClick', Cmd.Checked.ToString(TUseBoolStrs.True));
   {$ENDIF}
   if Cmd <> nil then
   begin
     fState.InitiallyVisible := not Cmd.Checked;
     DoChangePanelVisibility(not Cmd.Checked);
   end;
-  {$IFDEF DebugSayt}
-  DebugSayt('OnCmdClick2', Cmd.Checked.ToString(TUseBoolStrs.True));
+  {$IFDEF DebugSP}
+  DebugSP('OnCmdClick2', Cmd.Checked.ToString(TUseBoolStrs.True));
   {$ENDIF}
 end;
 
 function TIDESearchPanel.OnProjectOpen(Sender: TObject;
   AProject: TLazProject): TModalResult;
 begin
-  {$IFDEF DebugSayt}
-  DebugSayt('OnProjectOpen', fState.InitiallyVisible.ToString(TUseBoolStrs.True));
+  {$IFDEF DebugSP}
+  DebugSP('OnProjectOpen', fState.InitiallyVisible.ToString(TUseBoolStrs.True));
   {$ENDIF}
   DoChangePanelVisibility(fState.InitiallyVisible);
   Result := mrOk;
@@ -588,17 +580,10 @@ begin
     LazarusIDE.LastFormActivated.BringToFront;
 end;
 
-function CreateXMLConfig(const xmlfile: string): TXMLConfig;
-begin
-  Result := TXMLConfig.Create(nil);
-  Result.RootName := DockCfgRoot;
-  Result.Filename := xmlfile;
-end;
-
 procedure TIDESearchPanel.SynEditMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: integer);
 begin
-  {$IFDEF DebugSayt} DebugSayt('SynEditMouseDown', ''); {$ENDIF}
+  {$IFDEF DebugSP} DebugSP('SynEditMouseDown', ''); {$ENDIF}
   HideOptions;
   TSynEdit(Sender).SetHighlightSearch('', []);
   fSavedSelection.Start := Point(1, 1);
@@ -669,7 +654,7 @@ procedure TIDESearchPanel.AllocControls(AParent: TWinControl);
 var
   Black: string;
 begin
-  {$IFDEF DebugSayt} DebugSayt('AllocControls', ''); {$ENDIF}
+  {$IFDEF DebugSP} DebugSP('AllocControls', ''); {$ENDIF}
   FCurrentSrcWin := AParent;
   if fState.BlackIcons then Black := '_black'
   else
@@ -813,7 +798,7 @@ end;
 
 procedure TIDESearchPanel.DeallocControls;
 begin
-   {$IFDEF DebugSayt} DebugSayt('DeAllocControls', ''); {$ENDIF}
+   {$IFDEF DebugSP} DebugSP('DeAllocControls', ''); {$ENDIF}
   fSearchEdit := nil;
   fReplaceEdit := nil;
   fNext := nil;
@@ -825,27 +810,26 @@ begin
   fOptionsForm := nil;
 end;
 
-
-
 procedure TIDESearchPanel.SourceWindowCreated(Sender: TObject);
 begin
-      {$IFDEF DebugSayt} DebugSayt('SourceWindowCreated', ''); {$ENDIF}
+  {$IFDEF DebugSP} DebugSP('SourceWindowCreated', ''); {$ENDIF}
   if Assigned(FCurrentSrcWin) or (SourceEditorManagerIntf.SourceWindowCount > 1) then
     Exit;
 end;
 
 procedure TIDESearchPanel.SourceWindowDestroyed(Sender: TObject);
 begin
-   {$IFDEF DebugSayt} DebugSayt('SourceWindowDestroyed', ''); {$ENDIF}
+   {$IFDEF DebugSP} DebugSP('SourceWindowDestroyed', ''); {$ENDIF}
   if FCurrentSrcWin <> Sender then Exit;
   DoChangePanelVisibility(False);
   DeallocControls;
   FCurrentSrcWin := nil;
 end;
 
-procedure TIDESearchPanel.UpdateDockState(var astate: TSearchState; wnd: TWinControl);
+procedure TIDESearchPanel.LoadConfig(cfg: TXMLConfig; const ConfigName: string);
 begin
-   {$IFDEF DebugSayt} DebugSayt('UpdateDockState', ''); {$ENDIF}
+  fState.ShortCut:=UTF8Encode(cfg.GetValue(UTF8Decode(ConfigName + '/ShortCut'), 'Ctrl+P'));
+  fState.BlackIcons := cfg.GetValue(UTF8Decode(ConfigName + '/BlackIcons'), True);
 end;
 
 procedure TIDESearchPanel.LoadState(cfg: TXMLConfig; const StateName: string);
@@ -863,9 +847,7 @@ begin
   fState.FromCursor := _GetValue(StateName + '/FromCursor', False);
   fState.Incremental := _GetValue(StateName + '/Incremental', True);
   fState.InitiallyVisible := _GetValue(StateName + '/InitiallyVisible', True);
-  fState.BlackIcons := _GetValue(StateName + '/BlackIcons', True);
-  fState.ShortCut:=cfg.GetValue(UTF8Decode(StateName + '/ShortCut'), 'Ctrl+P');
-  {$IFDEF DebugSayt} DebugSayt('LoadState: InitiallyVisible=',
+  {$IFDEF DebugSP} DebugSP('LoadState: InitiallyVisible=',
     fState.InitiallyVisible.ToString(TUseBoolStrs.True)); {$ENDIF}
 end;
 
@@ -877,9 +859,8 @@ procedure TIDESearchPanel.SaveState(cfg: TXMLConfig; const StateName: string);
   end;
 
 begin
-{$IFDEF DebugSayt} DebugSayt('SaveState InitiallyVisible=',
+{$IFDEF DebugSP} DebugSP('SaveState InitiallyVisible=',
     fState.InitiallyVisible.ToString(TUseBoolStrs.True)); {$ENDIF}
-  UpdateDockState(fState, nil);
   _SetValue(StateName + '/CaseSensitive', fState.CaseSensitive);
   _SetValue(StateName + '/WholeWords', fState.WholeWords);
   _SetValue(StateName + '/Regex', fState.Regex);
@@ -887,18 +868,24 @@ begin
   _SetValue(StateName + '/FromCursor', fState.FromCursor);
   _SetValue(StateName + '/Incremental', fState.Incremental);
   _SetValue(StateName + '/InitiallyVisible', fState.InitiallyVisible);
-  _SetValue(StateName + '/BlackIcons', fState.BlackIcons);
-  //cfg.SetValue(UTF8Decode(StateName + '/ShortCut'), fState.ShortCut);
+end;
+
+function CreateXMLConfig(const xmlfile: string): TXMLConfig;
+begin
+  Result := TXMLConfig.Create(nil);
+  Result.RootName := SPCfgRoot;
+  Result.Filename := xmlfile;
 end;
 
 procedure TIDESearchPanel.LoadStates;
 var
   cfg: TXMLConfig;
 begin
-  {$IFDEF DebugSayt} DebugSayt('LoadStates', ''); {$ENDIF}
+  {$IFDEF DebugSP} DebugSP('LoadStates', ''); {$ENDIF}
   cfg := CreateXMLConfig(ConfigPath);
   try
-    LoadState(cfg, NodeName);
+    LoadConfig(cfg, ConfigNodeName);
+    LoadState(cfg, StateNodeName);
   finally
     cfg.Free;
   end;
@@ -908,10 +895,10 @@ procedure TIDESearchPanel.SaveStates;
 var
   cfg: TXMLConfig;
 begin
-  {$IFDEF DebugSayt} DebugSayt('SaveStates', ''); {$ENDIF}
+  {$IFDEF DebugSP} DebugSP('SaveStates', ''); {$ENDIF}
   cfg := CreateXMLConfig(ConfigPath);
   try
-    SaveState(cfg, NodeName)
+    SaveState(cfg, StateNodeName)
   finally
     cfg.Free;
   end;
@@ -927,7 +914,7 @@ end;
 procedure Register;
 var Key: TIDEShortCut;
     Cat: TIDECommandCategory;
-    CmdMyTool: TIDECommand;
+    CmdSP: TIDECommand;
     Key1:Word;
     Shift1:TShiftState;
 begin
@@ -935,15 +922,15 @@ begin
   try
     ASearchPanel.LoadStates;
   except
- {$IFDEF DebugSayt}
-    DebugSayt('Exception LoadStates', '');
+ {$IFDEF DebugSP}
+    DebugSP('Exception LoadStates', '');
  {$ENDIF}
   end;
   ShortCutToKey(TextToShortCutRaw(Trim(ASearchPanel.State.ShortCut)),Key1,Shift1);
   Key := IDEShortCut(Key1,Shift1,VK_UNKNOWN,[]);
   Cat:=IDECommandList.FindIDECommand(ecFind).Category;
-  CmdMyTool := RegisterIDECommand(Cat,mnuShowPanel, mnuShowPanel, Key, @ASearchPanel.OnCmdClick, nil);
-  Cmd := RegisterIDEMenuCommand(itmSearchFindReplace, 'showSearchPanel', mnuShowPanel,  nil, nil, CmdMyTool);
+  CmdSP := RegisterIDECommand(Cat,mnuShowPanel, mnuShowPanel, Key, @ASearchPanel.OnCmdClick, nil);
+  Cmd := RegisterIDEMenuCommand(itmSearchFindReplace, 'showSearchPanel', mnuShowPanel,  nil, nil, CmdSP);
   LazarusIDE.AddHandlerOnProjectOpened(@ASearchPanel.OnProjectOpen, False);
   LazarusIDE.GetMainBar.OnWindowStateChange := @ASearchPanel.MainWindowStateChange;
 end;
