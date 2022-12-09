@@ -1,6 +1,22 @@
 # Lazarus IDESearchPanel
 Search panel plugin for the Lazarus IDE
 
+### Advantages over the standard "Find" window of the IDE (Ctrl+F)
+<ul>
+<li>Modern, convenient, accessible and intuitive interface.
+<li>No forms and message boxes popping up.
+<li>Function keys such as F3, which are often difficult to reach on notebook-computers, are not required. For the next occurrence of the search term, simply press "Enter" again.
+<li>Search as you type: See directly whether and how often the search term was found.
+<li>Correct your search term easily with the backspace key without having to open a search form again.
+<li>Incremental search: Marks all occurrences of the search term in the visible area.
+</ul>
+
+### Advantages over the "Incremental Find" function of the IDE (Ctrl+E)
+<ul>
+<li>User-friendly, intuitive interface.
+<li>Search options.
+</ul>
+
 <img src="https://www.theo.ch/upload/Win_Searchpanel1.png" alt="Searchpanel Windows 10" width="800"/>
 
 <img src="https://www.theo.ch/upload/GTK_Searchpanel1.png" alt="Searchpanel Linux GTK2 with Options" width="800"/>
