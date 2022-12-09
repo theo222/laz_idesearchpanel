@@ -346,6 +346,7 @@ begin
     end;
     fLabel.Transparent := True;
     fLabel.Color := clNone;
+    fSearchEdit.Font.Color:=clDefault;
 
     fLastSearchText := fSearchEdit.Text;
 
@@ -418,6 +419,7 @@ begin
     else
     begin
       fLabel.Caption := '0 / 0';
+      fSearchEdit.Font.Color:=clRed;
       SynEdit.BlockBegin := SynEdit.BlockEnd;
       RegisterLastAutoSelection(SynEdit);
     end;
