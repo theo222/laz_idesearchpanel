@@ -108,6 +108,7 @@ type
     fLastSearchText: string;
     fSavedSelection: TSrchResult;
     fLastAutoSelection: TSrchResult;
+    fSettingsChanged:Boolean;
     function CompareLastAutoSelection(ASynEdit: TSynEdit): boolean;
     procedure HideOptions;
     procedure MainWindowStateChange(Sender: TObject);
@@ -338,6 +339,7 @@ var
 begin
   if GetSynEdit(SynEdit) then
   begin
+    fSettingsChanged:=false;
     RememberSynEdit(SynEdit);
     if fSearchEdit.Text = '' then
     begin
@@ -439,7 +441,7 @@ var
   aRec: TSrchResult;
 begin
   if GetSynEdit(SynEdit) then
-    if (not SameSynEdit(SynEdit)) or (not SameSynEditSelection(SynEdit)) then
+    if (not SameSynEdit(SynEdit)) or (not SameSynEditSelection(SynEdit) or fSettingsChanged) then
       SearchFirst
     else
     if fSrchResultIndex < fSrchResultList.Count - 1 then
@@ -467,7 +469,7 @@ var
   aRec: TSrchResult;
 begin
   if GetSynEdit(SynEdit) then
-    if (not SameSynEdit(SynEdit)) or (not SameSynEditSelection(SynEdit)) then
+    if (not SameSynEdit(SynEdit)) or (not SameSynEditSelection(SynEdit) or fSettingsChanged) then
       SearchFirst
     else
     if fSrchResultIndex > 0 then
@@ -543,6 +545,7 @@ begin
   fSrchResultList := TSrchResultList.Create;
   ConfigPath := IncludeTrailingPathDelimiter(LazarusIDE.GetPrimaryConfigPath) +
     SPCfgXML;
+  fSettingsChanged:=true;
 end;
 
 destructor TIDESearchPanel.Destroy;
@@ -648,7 +651,7 @@ begin
   if Index = Ord(soRegex) then
     if fOptionsCheckGroup.Checked[Ord(soRegex)] then
       fOptionsCheckGroup.Checked[Ord(soSAYT)] := False;
-
+  fSettingsChanged:=true;
   SyncSearchStateFromButtons;
 end;
 
