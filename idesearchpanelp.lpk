@@ -3,7 +3,7 @@
   <Package Version="5">
     <Name Value="idesearchpanelp"/>
     <Type Value="RunAndDesignTime"/>
-    <Author Value="Theo"/>
+    <Author Value="Theo,  Werner"/>
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
