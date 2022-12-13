@@ -10,8 +10,9 @@
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
     </CompilerOptions>
-    <Description Value="Searchpanel for the IDE"/>
+    <Description Value="Search Panel for the Lazarus IDE"/>
     <License Value="LGPL-2.1 license "/>
+    <Version Major="1"/>
     <Files Count="2">
       <Item1>
         <Filename Value="idesearchpanel.pas"/>
