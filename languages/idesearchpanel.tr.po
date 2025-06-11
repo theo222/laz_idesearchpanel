@@ -1,0 +1,73 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: Onur ERÇELEN\n"
+"Language: tr_TR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.2\n"
+
+#: idesearchpanel.mnushowpanel
+msgid "Show Search Panel"
+msgstr "Arama Panelini Göster"
+
+#: idesearchpanel.spcasesens
+msgid "Case sensitive"
+msgstr "Harfe duyarlı"
+
+#: idesearchpanel.spclose
+msgid "Close panel"
+msgstr "Paneli kapat"
+
+#: idesearchpanel.spfindnext
+msgid "Find next"
+msgstr "Sonrakini Bul"
+
+#: idesearchpanel.spfindprev
+msgid "Find previous"
+msgstr "Öncekini bul"
+
+#: idesearchpanel.spfromcursor
+msgid "Search from Cursor"
+msgstr "İmleçten Arama"
+
+#: idesearchpanel.spincremental
+msgid "Show incremental search"
+msgstr "Artımlı aramayı göster"
+
+#: idesearchpanel.spmulitline
+msgid "Multiline pattern"
+msgstr "Çok satırlı desen"
+
+#: idesearchpanel.spregex
+msgid "Regular expressions"
+msgstr "Düzenli ifadeler"
+
+#: idesearchpanel.spreplace
+msgid "Replace"
+msgstr "Değiştir"
+
+#: idesearchpanel.spsayt
+msgid "Search-as-You-Type"
+msgstr "Türünüze Göre Arama"
+
+#: idesearchpanel.spsearch
+msgid "Search"
+msgstr "Ara"
+
+#: idesearchpanel.spsearcherror
+msgid "Error in search term"
+msgstr "Arama teriminde hata"
+
+#: idesearchpanel.spsearchoptions
+msgid "Search options"
+msgstr "Arama seçenekleri"
+
+#: idesearchpanel.spwholewords
+msgid "Whole words only"
+msgstr "Yalnızca tam sözcükler"
