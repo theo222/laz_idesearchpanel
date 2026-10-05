@@ -392,7 +392,7 @@ begin
     try
       fSrchResultList.Clear;
       fSrchResultIndex := 0;
-      if fSrch.FindNextOne(Synedit.Lines, SP, EP, FoundSP, FoundEP) then
+      if fSrch.FindNextOne(Synedit.Lines, SP, EP, FoundSP, FoundEP, true) then
       begin
         SynEdit.BlockBegin := FoundSP;
         SynEdit.BlockEnd := FoundEP;
@@ -403,7 +403,7 @@ begin
         ARec.Start := FoundSP;
         ARec.Ende := FoundEP;
         fSrchResultList.Add(aRec);
-        while fSrch.FindNextOne(Synedit.Lines, FoundEP, EP, FoundSP, FoundEP) do
+        while fSrch.FindNextOne(Synedit.Lines, FoundEP, EP, FoundSP, FoundEP, true) do
         begin
           ARec.Start := FoundSP;
           ARec.Ende := FoundEP;
